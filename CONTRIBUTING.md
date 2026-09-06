@@ -32,6 +32,8 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 Go の並行処理を変更した場合は `go -C go test -race ./core` も実行します。
 race 検査には対象環境の C コンパイラーが必要です。
 
+Go のテストは生成済み Wasm を実行するため、test:go は `-count=1` で結果キャッシュを使わず実行します。
+
 check:package は npm pack した2つのパッケージを新しい一時ディレクトリへオフライン導入し、
 NodeNext の型検査と実行を確認します。先に npm ci と build を実行してください。
 tarball は dist に残り、一時 consumer は検証後に削除します。レジストリへの公開は行いません。

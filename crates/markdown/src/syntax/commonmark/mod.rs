@@ -1,4 +1,5 @@
 pub mod blocks;
+mod context;
 pub mod html;
 pub mod inlines;
 pub(crate) mod references;

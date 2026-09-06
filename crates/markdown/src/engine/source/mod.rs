@@ -1,8 +1,12 @@
 use crate::{ParseError, Span};
-use std::{borrow::Cow, ops::Range};
+use std::{any::Any, borrow::Cow, ops::Range, sync::Arc};
+
+mod context;
+#[cfg(test)]
+mod tests;
 
 pub struct SourceView {
-    lazy: Vec<usize>,
+    context: Vec<Arc<dyn Any + Send + Sync>>,
     pub(crate) text: String,
     // SourceView UTF-8 byte boundary -> original UTF-8 byte boundary.
     // Only character boundaries are used; replacement-character interiors are
@@ -16,12 +20,6 @@ pub struct SourceView {
 impl SourceView {
     pub fn text(&self) -> &str {
         &self.text
-    }
-    pub fn is_lazy(&self, original: usize) -> bool {
-        self.lazy.contains(&original)
-    }
-    pub(crate) fn mark_lazy(&mut self, original: usize) {
-        self.lazy.push(original);
     }
     pub fn span_for(&self, range: Range<usize>) -> Result<Span, ParseError> {
         if range.start > range.end
@@ -40,8 +38,8 @@ impl SourceView {
     }
 
     pub fn work_len(&self) -> usize {
-        // Recursive views copy tab records as well as text and byte offsets.
-        self.text.len() + self.tabs.len() * 2 + self.lazy.len()
+        // Child views copy context handles, not the extension-owned values.
+        self.text.len() + self.tabs.len() * 2 + self.context.len()
     }
     pub(crate) fn select(&self, ranges: &[std::ops::Range<usize>]) -> Self {
         let mut text = String::new();
@@ -58,7 +56,7 @@ impl SourceView {
             offsets.extend_from_slice(&self.offsets[range.start + 1..=range.end]);
         }
         Self {
-            lazy: self.lazy.clone(),
+            context: self.context.clone(),
             text,
             offsets,
             tabs,
@@ -91,7 +89,7 @@ impl SourceView {
             }
         }
         Self {
-            lazy: self.lazy.clone(),
+            context: self.context.clone(),
             text,
             offsets,
             tabs,
@@ -131,7 +129,7 @@ impl SourceView {
         text.push_str(&self.text[pos..]);
         offsets.extend_from_slice(&self.offsets[pos + 1..]);
         Self {
-            lazy: self.lazy.clone(),
+            context: self.context,
             text,
             offsets,
             tabs: vec![],
@@ -165,7 +163,7 @@ impl SourceView {
             }
         }
         Self {
-            lazy: vec![],
+            context: vec![],
             text,
             offsets,
             tabs: vec![],

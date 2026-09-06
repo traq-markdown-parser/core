@@ -182,6 +182,14 @@ BlockInput の leaf / blocks / matched / body は原文範囲を計算する。
 非連続な本文などには DraftNode / SourceView を使える。参照定義は block 解析後に inline へ解決する。
 例は [extensions.rs](../crates/markdown/tests/extensions.rs)。
 
+文法ルール間で引き継ぐ状態は `SourceView::context::<T>()` / `set_context(value)` を使う。
+拡張内の private な型で区別し、core は値の意味を解釈しない。CommonMark の引用継続行もこの方法で扱う。
+範囲を結合した子の view やタブの展開・復元にも状態を引き継ぐ。
+子で値を差し替えても親・兄弟は変わらない。値に内部可変性を持たせた場合はその内部の変更が共有されるため、
+局所的な状態には不変な値を使う。状態は view とともに解放され、Parser の反復利用で次の本文に持ち越さない。
+拡張が自身の状態を複製・加工する処理量は、そのルールの Budget に計上する。
+この API は Rust の文法実装向けであり、TS / Go の parse 呼び出しや AST に context を追加しない。
+
 Document は {source, children}。子は共通の children、span は保存原文の UTF-8 バイト範囲。
 改行・NUL・タブの解析時処理でも source は変えず、Unicode 正規化もしない。
 generic/math_inline@1 の @1 は payload 契約の版で、文法版や plugin の表示名とは独立している。

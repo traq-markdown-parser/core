@@ -8,7 +8,8 @@ use crate::{
 };
 
 fn setext(input: &BlockInput<'_>, line: usize) -> Option<u8> {
-    if input.source.is_lazy(
+    if super::super::context::is_lazy(
+        input.source,
         input
             .source
             .span(input.lines[line].start, input.lines[line].start)

@@ -7,7 +7,10 @@ use crate::{
     },
 };
 
-pub fn parse(input: &BlockInput<'_>, _: &mut Budget) -> Result<Option<BlockMatch>, ParseError> {
+pub fn parse(
+    input: &BlockInput<'_>,
+    budget: &mut Budget,
+) -> Result<Option<BlockMatch>, ParseError> {
     if quote(input.current()).is_none() {
         return Ok(None);
     }
@@ -33,9 +36,7 @@ pub fn parse(input: &BlockInput<'_>, _: &mut Budget) -> Result<Option<BlockMatch
         end += 1;
     }
     let mut view = source.select(&ranges);
-    for line in lazy_lines {
-        view.mark_lazy(line);
-    }
+    super::super::context::mark_lazy(&mut view, lazy_lines, budget)?;
     Ok(Some(BlockMatch::node(
         end,
         DraftNode::blocks(
