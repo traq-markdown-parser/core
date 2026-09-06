@@ -1,0 +1,26 @@
+[package]
+name = "traq-markdown"
+version.workspace = true
+description = "Composable Markdown parsing with CommonMark and traQ syntax presets."
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+contracts = ["dep:ts-rs", "dep:schemars"]
+
+[[bin]]
+name = "export-contracts"
+required-features = ["contracts"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+unicode-general-category = "0.6"
+mdurl = "0.3"
+idna = "0.3"
+regex = "1"
+ts-rs = { version = "12", optional = true, features = ["serde-json-impl"] }
+
+schemars = { version = "1.2.2", optional = true }
+

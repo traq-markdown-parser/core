@@ -1,0 +1,658 @@
+{
+  "catalog": {
+    "exports": {
+      "plugins": {
+        "commonmark": {
+          "core": 0,
+          "html": 1
+        },
+        "generic": {
+          "linkify": 6,
+          "mark": 3,
+          "math": 2,
+          "strikethrough": 4,
+          "table": 5
+        },
+        "trap": {
+          "compat": 10,
+          "references": 8,
+          "spoiler": 7,
+          "stamp": 9
+        }
+      },
+      "presets": {
+        "commonmark": 0,
+        "traq": {
+          "v1": 1
+        }
+      }
+    },
+    "groups": [
+      {
+        "name": "commonmark",
+        "parent": null
+      },
+      {
+        "name": "generic",
+        "parent": null
+      },
+      {
+        "name": "trap",
+        "parent": null
+      }
+    ],
+    "plugins": [
+      {
+        "group": 0,
+        "name": "core",
+        "rules": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      {
+        "group": 0,
+        "name": "html",
+        "rules": [
+          16,
+          17
+        ]
+      },
+      {
+        "group": 1,
+        "name": "math",
+        "rules": [
+          18,
+          19
+        ]
+      },
+      {
+        "group": 1,
+        "name": "mark",
+        "rules": [
+          20
+        ]
+      },
+      {
+        "group": 1,
+        "name": "strikethrough",
+        "rules": [
+          21
+        ]
+      },
+      {
+        "group": 1,
+        "name": "table",
+        "rules": [
+          22
+        ]
+      },
+      {
+        "group": 1,
+        "name": "linkify",
+        "rules": [
+          23,
+          24
+        ]
+      },
+      {
+        "group": 2,
+        "name": "spoiler",
+        "rules": [
+          25
+        ]
+      },
+      {
+        "group": 2,
+        "name": "references",
+        "rules": [
+          26
+        ]
+      },
+      {
+        "group": 2,
+        "name": "stamp",
+        "rules": [
+          27
+        ]
+      },
+      {
+        "group": 2,
+        "name": "compat",
+        "rules": [
+          28,
+          29
+        ]
+      },
+      {
+        "group": 0,
+        "name": "core",
+        "rules": [
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "description": "plugin: commonmark/core\nplugin: commonmark/html\nblock: commonmark/core/definition\nblock: commonmark/core/blank\nblock: commonmark/core/fence\nblock: commonmark/core/indented\nblock: commonmark/html/html\nblock: commonmark/core/heading\nblock: commonmark/core/thematic\nblock: commonmark/core/quote\nblock: commonmark/core/list\nblock: commonmark/core/paragraph\ninline: commonmark/core/escape\ninline: commonmark/core/code\ninline: commonmark/core/emphasis\ninline: commonmark/core/link\ninline: commonmark/core/autolink\ninline: commonmark/html/html\ninline: commonmark/core/entity\ninline: commonmark/core/newline",
+        "extensions": [],
+        "order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          17,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          16,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "plugins": [
+          0,
+          1
+        ]
+      },
+      {
+        "description": "plugin: commonmark/core\nplugin: generic/table\nplugin: generic/math\nplugin: generic/strikethrough\nplugin: generic/mark\nplugin: trap/spoiler\nplugin: trap/references\nplugin: trap/stamp\nplugin: generic/linkify\nplugin: trap/compat\nblock: commonmark/core/definition\nblock: trap/compat/blank\nblock: commonmark/core/blank\nblock: generic/table/table\nblock: generic/math/math\nblock: commonmark/core/fence\nblock: commonmark/core/indented\nblock: commonmark/core/heading\nblock: commonmark/core/thematic\nblock: trap/compat/quote\nblock: commonmark/core/quote\nblock: commonmark/core/list\nblock: commonmark/core/paragraph\ninline: commonmark/core/escape\ninline: generic/math/math\ninline: commonmark/core/code\ninline: trap/spoiler/spoiler\ninline: generic/strikethrough/strikethrough\ninline: generic/mark/mark\ninline: commonmark/core/emphasis\ninline: trap/references/json_reference\ninline: commonmark/core/link\ninline: commonmark/core/autolink\ninline: trap/stamp/stamp\ninline: generic/linkify/linkify\ninline: commonmark/core/entity\ninline: commonmark/core/newline\ntext: generic/linkify/linkify",
+        "extensions": [
+          "generic/math_inline@1",
+          "trap/spoiler@1",
+          "generic/strikethrough@1",
+          "generic/mark@1",
+          "trap/reference@1",
+          "trap/stamp@1",
+          "trap/blank_line@1",
+          "generic/table@1",
+          "generic/table_row@1",
+          "generic/table_cell@1",
+          "generic/math_block@1"
+        ],
+        "order": [
+          30,
+          18,
+          31,
+          25,
+          21,
+          20,
+          32,
+          26,
+          33,
+          34,
+          27,
+          23,
+          35,
+          36,
+          37,
+          28,
+          38,
+          22,
+          19,
+          39,
+          40,
+          41,
+          42,
+          29,
+          43,
+          44,
+          45,
+          24
+        ],
+        "plugins": [
+          11,
+          5,
+          2,
+          4,
+          3,
+          7,
+          8,
+          9,
+          6,
+          10
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "extensions": [],
+        "name": "escape",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "code",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "emphasis",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "link",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "autolink",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "entity",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "newline",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "definition",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "blank",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "fence",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "indented",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "heading",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "thematic",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "quote",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "list",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "paragraph",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "html",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "html",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "generic/math_inline@1"
+        ],
+        "name": "math",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "generic/math_block@1"
+        ],
+        "name": "math",
+        "phase": "block"
+      },
+      {
+        "extensions": [
+          "generic/mark@1"
+        ],
+        "name": "mark",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "generic/strikethrough@1"
+        ],
+        "name": "strikethrough",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "generic/table@1",
+          "generic/table_row@1",
+          "generic/table_cell@1"
+        ],
+        "name": "table",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "linkify",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "linkify",
+        "phase": "text"
+      },
+      {
+        "extensions": [
+          "trap/spoiler@1"
+        ],
+        "name": "spoiler",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "trap/reference@1"
+        ],
+        "name": "json_reference",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "trap/stamp@1"
+        ],
+        "name": "stamp",
+        "phase": "inline"
+      },
+      {
+        "extensions": [
+          "trap/blank_line@1"
+        ],
+        "name": "blank",
+        "phase": "block"
+      },
+      {
+        "extensions": [
+          "trap/blank_line@1"
+        ],
+        "name": "quote",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "escape",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "code",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "emphasis",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "link",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "autolink",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "entity",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "newline",
+        "phase": "inline"
+      },
+      {
+        "extensions": [],
+        "name": "definition",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "blank",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "fence",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "indented",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "heading",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "thematic",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "quote",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "list",
+        "phase": "block"
+      },
+      {
+        "extensions": [],
+        "name": "paragraph",
+        "phase": "block"
+      }
+    ]
+  },
+  "extensions": {
+    "generic/mark@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "title": "MarkData",
+      "type": "object"
+    },
+    "generic/math_block@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "tex": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tex"
+      ],
+      "title": "BlockMathData",
+      "type": "object"
+    },
+    "generic/math_inline@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "tex": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tex"
+      ],
+      "title": "InlineMathData",
+      "type": "object"
+    },
+    "generic/strikethrough@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "title": "StrikethroughData",
+      "type": "object"
+    },
+    "generic/table@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "title": "TableData",
+      "type": "object"
+    },
+    "generic/table_cell@1": {
+      "$defs": {
+        "Alignment": {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "type": "string"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "alignment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Alignment"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "alignment"
+      ],
+      "title": "CellData",
+      "type": "object"
+    },
+    "generic/table_row@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "header": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "header"
+      ],
+      "title": "RowData",
+      "type": "object"
+    },
+    "trap/blank_line@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "title": "BlankLineData",
+      "type": "object"
+    },
+    "trap/reference@1": {
+      "$defs": {
+        "ReferenceKind": {
+          "enum": [
+            "user",
+            "group",
+            "channel"
+          ],
+          "type": "string"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/ReferenceKind"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "label"
+      ],
+      "title": "ReferenceData",
+      "type": "object"
+    },
+    "trap/spoiler@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "title": "SpoilerData",
+      "type": "object"
+    },
+    "trap/stamp@1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "literal": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "literal"
+      ],
+      "title": "StampData",
+      "type": "object"
+    }
+  }
+}

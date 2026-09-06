@@ -1,0 +1,89 @@
+package core
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/traPtitech/traq-markdown-parser/go/binding"
+)
+
+type catalog struct {
+	Groups  []groupDefinition  `json:"groups"`
+	Plugins []pluginDefinition `json:"plugins"`
+	Rules   []struct {
+		Name       *string  `json:"name"`
+		Phase      string   `json:"phase"`
+		Extensions []string `json:"extensions"`
+	} `json:"rules"`
+	Presets []struct {
+		Description string   `json:"description"`
+		Extensions  []string `json:"extensions"`
+		Plugins     []int    `json:"plugins"`
+		Order       []int    `json:"order"`
+	} `json:"presets"`
+}
+
+func displayName(name *string) string {
+	if name == nil {
+		return ""
+	}
+	return *name
+}
+func (r *Runtime) loadCatalog(ctx context.Context) error {
+	// The artifact was checked against this generated catalog on instantiation.
+	var spec catalog
+	if err := json.Unmarshal(binding.CatalogJSON, &spec); err != nil {
+		return err
+	}
+	groups := make([]*PluginGroup, len(spec.Groups))
+	for index, item := range spec.Groups {
+		group := NewPluginGroup()
+		if item.Name != nil {
+			group = group.Named(*item.Name)
+		}
+		if item.Parent != nil {
+			group.parent = groups[*item.Parent]
+		}
+		groups[index] = group
+	}
+	rules := make([]*Rule, len(spec.Rules))
+	for index, item := range spec.Rules {
+		rules[index] = &Rule{runtime: r, index: index, name: displayName(item.Name), phase: item.Phase, extensions: item.Extensions}
+	}
+	plugins := make([]*Plugin, len(spec.Plugins))
+	for index, item := range spec.Plugins {
+		plugin := NewPlugin()
+		if item.Name != nil {
+			plugin = plugin.Named(*item.Name)
+		}
+		if item.Group != nil {
+			plugin.group = groups[*item.Group]
+		}
+		for _, rule := range item.Rules {
+			plugin.rules = append(plugin.rules, rules[rule])
+		}
+		plugin.frozen = true
+		plugins[index] = plugin
+	}
+	presets := make([]*Grammar, len(spec.Presets))
+	for index, item := range spec.Presets {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		b := r.Builder()
+		for _, plugin := range item.Plugins {
+			if err := b.Add(plugins[plugin]); err != nil {
+				return err
+			}
+		}
+		b.definition.order = item.Order
+		snapshot := b.definition.copy()
+		recipe, err := json.Marshal(snapshot.composition())
+		if err != nil {
+			return err
+		}
+		presets[index] = r.newGrammar(snapshot, recipe, item.Description, item.Extensions)
+	}
+	r.exportCatalog(plugins, presets)
+	return nil
+}

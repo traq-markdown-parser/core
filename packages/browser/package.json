@@ -1,0 +1,28 @@
+{
+  "name": "@traptitech/markdown-parser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "*.mjs",
+    "*.d.mts",
+    "generated",
+    "parser.wasm",
+    "contract.json",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.mts",
+      "import": "./index.mjs"
+    },
+    "./parser.wasm": "./parser.wasm",
+    "./contract.json": "./contract.json",
+    "./extensions": {
+      "types": "./generated/extensions.d.mts",
+      "import": "./generated/extensions.mjs"
+    }
+  },
+  "description": "Composable Markdown parser shared by Rust, Go and JavaScript through WebAssembly.",
+  "license": "MIT"
+}

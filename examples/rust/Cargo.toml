@@ -1,0 +1,10 @@
+[package]
+name = "traq-markdown-example"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+traq-markdown = { path = "../../crates/markdown" }
+serde_json = "1"

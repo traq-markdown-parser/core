@@ -1,0 +1,15 @@
+[package]
+name = "traq-markdown-wasm"
+version.workspace = true
+description = "WebAssembly interface for the shared Markdown parser."
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+traq-markdown = { path = "../markdown" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

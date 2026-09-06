@@ -1,0 +1,35 @@
+{
+  "name": "@traptitech/markdown-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "*.mjs",
+    "*.d.mts",
+    "extensions",
+    "profiles"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.mts",
+      "import": "./index.mjs"
+    },
+    "./common": {
+      "types": "./common.d.mts",
+      "import": "./common.mjs"
+    },
+    "./traq/v1": {
+      "types": "./profiles/traq/v1.d.mts",
+      "import": "./profiles/traq/v1.mjs"
+    }
+  },
+  "peerDependencies": {
+    "markdown-it": "^14.0.0",
+    "@traptitech/markdown-parser": "0.1.x"
+  },
+  "dependencies": {
+    "@types/markdown-it": "^14.2.0"
+  },
+  "description": "Render shared Markdown ASTs as markdown-it tokens with configurable presentation handlers.",
+  "license": "MIT"
+}
