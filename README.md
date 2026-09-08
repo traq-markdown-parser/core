@@ -27,7 +27,7 @@ cargo run -p markdown-codec --example round_trip
 ## リポジトリの境界
 
 - [commonmark](https://github.com/traq-markdown-parser/commonmark): 標準文法と汎用拡張
-- [trap](https://github.com/traq-markdown-parser/trap): traP 拡張、traQ preset と処理
-- [sdk](https://github.com/traq-markdown-parser/sdk): Wasm 配布、TypeScript / Go bindings
+- [trap-extension](https://github.com/traq-markdown-parser/trap-extension): traP 固有の構文・描画・抽出部品
+- [traq](https://github.com/traq-markdown-parser/traq): traQ の文法・処理の構成、Wasm 配布、TypeScript / Go bindings
 
 core はこれらへ依存しません。テストにも独立した契約型を使います。リポジトリ内の crate は同じ版で管理し、外部からは確定した Git revision を指定して利用します。レジストリへの公開はまだ行っていません。
