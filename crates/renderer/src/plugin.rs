@@ -11,6 +11,7 @@ pub struct Plugin {
     pub(crate) declaration: Declaration,
     pub(crate) handlers: Arc<HashMap<TypeId, Handler>>,
 }
+
 impl Plugin {
     pub fn new(declaration: &Declaration) -> Self {
         Self {
@@ -29,6 +30,7 @@ impl Plugin {
         if self.handlers.contains_key(&id) {
             return Err("duplicate_handler");
         }
+
         Arc::make_mut(&mut self.handlers).insert(id, erase(handler));
         Ok(())
     }
@@ -43,6 +45,7 @@ impl Plugin {
         if !self.handlers.contains_key(&id) {
             return Err("missing_handler");
         }
+
         Arc::make_mut(&mut self.handlers).insert(id, erase(handler));
         Ok(())
     }

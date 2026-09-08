@@ -15,6 +15,7 @@ pub(super) fn process(
     budget: &mut Budget,
 ) -> Result<Vec<Token>, ParseError> {
     let mut joined: Vec<Token> = vec![];
+
     for mut token in tokens {
         if let TokenKind::Marker(value) = token.kind {
             token.kind = TokenKind::Text(value);
@@ -36,6 +37,7 @@ pub(super) fn process(
         }
         joined.push(token);
     }
+
     for entry in &grammar.data.text {
         let mut result = vec![];
         let mut special = false;
@@ -88,6 +90,7 @@ pub(super) fn process(
             }
             special = false;
         }
+
         joined = result;
     }
     Ok(joined)

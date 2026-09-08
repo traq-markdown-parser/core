@@ -14,6 +14,7 @@ pub(super) fn build(
     let mut stack = vec![];
     let mut children = vec![];
     let mut text: Option<(usize, usize, String)> = None;
+
     for token in tokens {
         budget.spend(1)?;
         let kind = match token.kind {
@@ -53,6 +54,7 @@ pub(super) fn build(
             _ => unreachable!("text and empty tokens handled above"),
         }
     }
+
     flush(&mut text, &mut children, source, make_text);
     if !stack.is_empty() {
         return Err(ParseError::InternalError);

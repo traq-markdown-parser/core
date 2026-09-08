@@ -64,13 +64,16 @@ pub struct BlockInput<'a> {
     pub start: usize,
     pub(crate) grammar: &'a Grammar,
 }
+
 impl BlockInput<'_> {
     pub fn line(&self, index: usize) -> &str {
         self.source.text[self.lines[index].clone()].trim_end_matches('\n')
     }
+
     pub fn current(&self) -> &str {
         self.line(self.start)
     }
+
     pub fn interrupts(&self, index: usize, context: Interrupt) -> bool {
         self.interrupts_text(
             self.line(index),
@@ -78,6 +81,7 @@ impl BlockInput<'_> {
             context,
         )
     }
+
     pub fn interrupts_text(&self, line: &str, next: Option<&str>, context: Interrupt) -> bool {
         let probe = BlockProbe {
             line,

@@ -45,6 +45,7 @@ pub enum InlineAction {
     },
     DiscardBracket,
 }
+
 impl InlineMatch {
     pub fn text(end: usize, value: String) -> Self {
         Self {
@@ -52,6 +53,7 @@ impl InlineMatch {
             action: InlineAction::Text(value),
         }
     }
+
     pub fn leaf(end: usize, kind: NodeKind) -> Self {
         Self {
             end,
@@ -62,6 +64,7 @@ impl InlineMatch {
             },
         }
     }
+
     pub fn literal(end: usize) -> Self {
         Self {
             end,

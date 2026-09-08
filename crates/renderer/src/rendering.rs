@@ -5,6 +5,7 @@ use std::cell::Cell;
 pub struct Renderer {
     preset: Preset,
 }
+
 impl Renderer {
     pub fn new(preset: &Preset) -> Self {
         Self {
@@ -20,6 +21,7 @@ impl Renderer {
                     "resource_limit"
                 }
             })?;
+
         // Registration is renderer policy. Check even hidden descendants before
         // executing any handler, after the common tree validation succeeds.
         let mut pending: Vec<_> = doc.children.iter().collect();
@@ -29,6 +31,7 @@ impl Renderer {
             }
             pending.extend(&node.children);
         }
+
         Context {
             renderer: self,
             work: Cell::new(0),
@@ -44,6 +47,7 @@ pub struct Context<'a> {
 impl Context<'_> {
     pub fn append(&self, output: &mut String, value: &str) -> Result<()> {
         let work = self.work.get().saturating_add(value.len());
+
         if output.len().saturating_add(value.len()) > 1_048_576 || work > 8_388_608 {
             return Err("resource_limit");
         }
@@ -54,6 +58,7 @@ impl Context<'_> {
 
     pub fn children(&self, nodes: &[Node]) -> Result<String> {
         let mut output = String::new();
+
         for node in nodes {
             let handler = self
                 .renderer

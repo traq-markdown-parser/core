@@ -15,6 +15,7 @@ impl GrammarBuilder {
                 element: plugin.description(),
             });
         }
+
         let mut pending = self.rules.iter().map(|(_, r)| r).collect::<Vec<_>>();
         for rule in plugin.definition.rules.iter() {
             if pending.iter().any(|r| r.same(rule)) {
@@ -24,6 +25,7 @@ impl GrammarBuilder {
             }
             pending.push(rule);
         }
+
         self.plugins.push(plugin.clone());
         self.rules.extend(
             plugin
@@ -41,6 +43,7 @@ impl GrammarBuilder {
                 element: plugin.description(),
             });
         }
+
         self.plugins.retain(|p| !p.same(plugin));
         self.rules.retain(|(owner, _)| !owner.same(plugin));
         Ok(self)
@@ -62,6 +65,7 @@ impl GrammarBuilder {
         for<'a> Contribution: From<&'a Rule<T>>,
     {
         let (rule, anchor) = (Contribution::from(rule), Contribution::from(anchor));
+
         let from = self
             .rules
             .iter()
@@ -69,6 +73,7 @@ impl GrammarBuilder {
             .ok_or_else(|| BuildError::Missing {
                 element: rule.description(),
             })?;
+
         let to = self
             .rules
             .iter()
@@ -85,12 +90,14 @@ impl GrammarBuilder {
     }
     pub(crate) fn describe(&self) -> String {
         let mut lines = vec![];
+
         for plugin in &self.plugins {
             lines.push(format!("plugin: {}", plugin.description()));
             for _ in &plugin.definition.text {
                 lines.push(format!("text provider: {}", plugin.description()));
             }
         }
+
         for phase in ["block", "inline", "text"] {
             for (plugin, rule) in &self.rules {
                 if rule.phase() == phase {
@@ -106,6 +113,7 @@ impl GrammarBuilder {
     }
     pub(crate) fn validate(&self) -> Result<super::plugin::TextFactory, BuildError> {
         super::names::validate(&self.plugins)?;
+
         let mut providers = self.plugins.iter().flat_map(|p| &p.definition.text);
         let make_text = providers
             .next()
@@ -118,10 +126,12 @@ impl GrammarBuilder {
                 element: "text provider".into(),
             });
         }
+
         Ok(make_text)
     }
     pub fn build(self) -> Result<Grammar, BuildError> {
         let make_text = self.validate()?;
+
         let mut grammar = super::registry::CompiledGrammar {
             definition: self,
             inline: vec![],
@@ -130,6 +140,7 @@ impl GrammarBuilder {
             make_text,
             dispatch: std::array::from_fn(|_| vec![]),
         };
+
         for (_, rule) in &grammar.definition.rules {
             match rule {
                 Contribution::Inline(r) => grammar.inline.push(r.clone()),
@@ -137,6 +148,7 @@ impl GrammarBuilder {
                 Contribution::Text(r) => grammar.text.push(r.clone()),
             }
         }
+
         for (index, rule) in grammar.inline.iter().enumerate() {
             let markers = rule.data.implementation.markers;
             for (byte, candidates) in grammar.dispatch.iter_mut().enumerate() {
@@ -145,6 +157,7 @@ impl GrammarBuilder {
                 }
             }
         }
+
         Ok(Grammar {
             data: std::sync::Arc::new(grammar),
         })

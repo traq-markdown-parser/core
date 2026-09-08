@@ -60,6 +60,7 @@ impl Budget {
             .work
             .checked_add(work)
             .ok_or_else(|| ParseError::limit("work"))?;
+
         if self.work > self.limits.work {
             return Err(ParseError::limit("work"));
         }
@@ -73,6 +74,7 @@ impl Budget {
             .tokens
             .checked_add(1)
             .ok_or_else(|| ParseError::limit("tokens"))?;
+
         if self.tokens > self.limits.nodes {
             return Err(ParseError::limit("tokens"));
         }

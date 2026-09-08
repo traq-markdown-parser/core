@@ -53,6 +53,7 @@ pub(super) fn balance(
             bottom[parameter] = new_min;
         }
     }
+
     let mut i = ds.len();
     while i > 0 {
         budget.spend(1)?;

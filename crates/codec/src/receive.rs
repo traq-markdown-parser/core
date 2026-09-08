@@ -15,6 +15,7 @@ pub struct DecodeLimits {
     pub nodes: usize,
     pub depth: usize,
 }
+
 impl Default for DecodeLimits {
     fn default() -> Self {
         Self {
@@ -34,11 +35,13 @@ pub(crate) fn decode(
     if json.len() > limits.json_bytes {
         return Err(error("json byte limit"));
     }
+
     let mut fields: Fields<'_> = serde_json::from_slice(json)?;
     let source: String = Deserialize::deserialize(fields.take("source")?)?;
     if source.len() > limits.source_bytes {
         return Err(error("source byte limit"));
     }
+
     let children = fields.take("children")?;
     fields.end()?;
     let mut state = State {
@@ -51,6 +54,7 @@ pub(crate) fn decode(
         start: 0,
         end: source.len(),
     };
+
     let children = Children {
         state: &mut state,
         parent,
@@ -76,6 +80,7 @@ impl State<'_> {
         }
         self.count += 1;
         let mut fields: Fields<'_> = Deserialize::deserialize(raw)?;
+
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
         struct Position {
@@ -95,9 +100,11 @@ impl State<'_> {
         {
             return Err(error("invalid span"));
         }
+
         let kind: String = Deserialize::deserialize(fields.take("kind")?)?;
         let raw_children = fields.0.remove("children");
         let kind = (self.decode_kind)(&kind, fields)?;
+
         let children = match raw_children {
             Some(raw) => Children {
                 state: self,
@@ -110,6 +117,7 @@ impl State<'_> {
         if !kind.validate(&children) {
             return Err(error("invalid node shape"));
         }
+
         Ok(Node::new(span, kind, children))
     }
 }
@@ -127,6 +135,7 @@ impl<'de> DeserializeSeed<'de> for Children<'_, '_> {
         deserializer.deserialize_seq(self)
     }
 }
+
 impl<'de> Visitor<'de> for Children<'_, '_> {
     type Value = Vec<Node>;
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

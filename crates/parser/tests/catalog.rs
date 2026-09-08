@@ -7,6 +7,7 @@ use std::sync::{
 
 #[derive(Debug, Clone, PartialEq)]
 struct Text(String);
+
 impl NodeData for Text {}
 
 #[test]

@@ -11,6 +11,7 @@ fn duplicate(scope: String, name: &str) -> BuildError {
 pub(super) fn validate(plugins: &[Plugin]) -> Result<(), BuildError> {
     for plugin in plugins {
         let mut names = HashSet::new();
+
         for rule in plugin.definition.rules.iter() {
             if let Some(name) = rule.name()
                 && !names.insert((rule.phase(), name))
@@ -22,6 +23,7 @@ pub(super) fn validate(plugins: &[Plugin]) -> Result<(), BuildError> {
             }
         }
     }
+
     markdown_definitions::validate_names(plugins.iter().map(|plugin| &plugin.declaration))
         .map_err(|error| duplicate(error.scope, &error.name))
 }

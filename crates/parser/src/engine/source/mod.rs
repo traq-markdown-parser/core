@@ -21,6 +21,7 @@ impl SourceView {
     pub fn text(&self) -> &str {
         &self.text
     }
+
     pub fn span_for(&self, range: Range<usize>) -> Result<Span, ParseError> {
         if range.start > range.end
             || !self.text.is_char_boundary(range.start)
@@ -30,6 +31,7 @@ impl SourceView {
         }
         Ok(self.span(range.start, range.end))
     }
+
     pub fn join(&self, ranges: &[Range<usize>]) -> Result<Self, ParseError> {
         for range in ranges {
             self.span_for(range.clone())?;
@@ -45,6 +47,7 @@ impl SourceView {
         let mut text = String::new();
         let mut offsets = vec![0];
         let mut tabs = vec![];
+
         for range in ranges {
             let start = text.len();
             tabs.extend(
@@ -74,6 +77,7 @@ impl SourceView {
         let mut offsets = vec![self.offsets[0]];
         let mut tabs = vec![];
         let mut column = 0;
+
         for (pos, ch) in self.text.char_indices() {
             if ch == '\t' {
                 let width = 4 - column % 4;
@@ -103,6 +107,7 @@ impl SourceView {
         }
         let mut text = String::new();
         let mut pos = range.start;
+
         for tab in tabs {
             text.push_str(&self.text[pos..tab.start]);
             text.push('\t');
@@ -119,6 +124,7 @@ impl SourceView {
         let mut text = String::new();
         let mut offsets = vec![self.offsets[0]];
         let mut pos = 0;
+
         for tab in &self.tabs {
             text.push_str(&self.text[pos..tab.start]);
             offsets.extend_from_slice(&self.offsets[pos + 1..=tab.start]);
@@ -140,6 +146,7 @@ impl SourceView {
         let mut text = String::with_capacity(source.len());
         let mut offsets = vec![0];
         let mut chars = source.char_indices().peekable();
+
         while let Some((start, ch)) = chars.next() {
             match ch {
                 '\r' => {

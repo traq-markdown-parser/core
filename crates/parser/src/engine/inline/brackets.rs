@@ -20,6 +20,7 @@ pub(super) fn close(
     if !bracket.info.active {
         return Err(ParseError::InternalError);
     }
+
     let mut delimiters = state.delimiters.split_off(bracket.bottom);
     delimiters::balance(&mut state.tokens, &mut delimiters, state.budget)?;
     let children = tree::build(
@@ -28,6 +29,7 @@ pub(super) fn close(
         state.make_text,
         state.budget,
     )?;
+
     let opening = state.tokens.pop().ok_or(ParseError::InternalError)?;
     let mut start = opening.start;
     if prefix > 0 {
@@ -41,6 +43,7 @@ pub(super) fn close(
         )?;
         start += prefix;
     }
+
     state.push(start, end, TokenKind::Atom(kind, children))?;
     if inhibit {
         self::inhibit(state);

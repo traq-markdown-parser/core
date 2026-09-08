@@ -22,6 +22,7 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
         }
         Err(error) => return Err(syn::Error::new_spanned(&input.ident, error)),
     };
+
     let name = &input.ident;
     let label = name.unraw().to_string();
     let arguments: Vec<_> = input.generics.params.iter().filter_map(|parameter| {
@@ -38,6 +39,7 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
             GenericParam::Lifetime(_) => None,
         }
     }).collect();
+
     let body = if arguments.is_empty() {
         quote!(::std::string::String::from(
             ::core::concat!(::core::module_path!(), "::", #label)
@@ -55,10 +57,12 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
             key
         }
     };
+
     let mut generics = input.generics.clone();
     for parameter in generics.type_params_mut() {
         parameter.bounds.push(parse_quote!(#path::NodeType));
     }
+
     let (implementation, arguments_type, clause) = generics.split_for_impl();
     Ok(quote! {
         impl #implementation #path::NodeType for #name #arguments_type #clause {

@@ -11,6 +11,7 @@ pub struct BlockDefinition {
     pub(crate) interrupt: Option<Arc<ProbeRule>>,
 }
 pub type BlockRule = Rule<BlockDefinition>;
+
 impl BlockRule {
     pub fn new<F>(parse: F) -> Self
     where
@@ -24,6 +25,7 @@ impl BlockRule {
             interrupt: None,
         })
     }
+
     pub fn interrupts<F>(mut self, probe: F) -> Self
     where
         F: Fn(&BlockProbe<'_>) -> bool + Send + Sync + 'static,

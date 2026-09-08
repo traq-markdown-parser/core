@@ -30,6 +30,7 @@ pub struct Composition {
     pub plugins: Vec<PluginSpec>,
     pub order: Vec<usize>,
 }
+
 fn invalid(reason: &str) -> BuildError {
     BuildError::InvalidDefinition {
         reason: reason.into(),
@@ -41,6 +42,7 @@ impl Catalog {
         if spec.groups.len() > 256 || spec.plugins.len() > 256 || spec.order.len() > 4096 {
             return Err(invalid("composition limit exceeded"));
         }
+
         let mut groups: Vec<crate::engine::PluginGroup> = vec![];
         let mut depths = vec![];
         for (index, group) in spec.groups.iter().enumerate() {
@@ -62,6 +64,7 @@ impl Catalog {
             groups.push(value);
             depths.push(depth);
         }
+
         let mut builder = GrammarBuilder::new();
         for plugin in &spec.plugins {
             let name = plugin
@@ -98,11 +101,13 @@ impl Catalog {
             }
             builder.add(&value)?;
         }
+
         if spec.order.len() != builder.rules.len() {
             return Err(invalid("incomplete rule order"));
         }
         let mut seen = HashSet::new();
         let mut ordered = vec![];
+
         for &index in &spec.order {
             if !seen.insert(index) {
                 return Err(invalid("duplicate ordered rule"));
@@ -118,6 +123,7 @@ impl Catalog {
                 .ok_or_else(|| invalid("ordered rule is not registered"))?;
             ordered.push(entry.clone());
         }
+
         builder.rules = ordered;
         builder.build()
     }

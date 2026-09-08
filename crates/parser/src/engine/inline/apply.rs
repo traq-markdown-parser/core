@@ -9,6 +9,7 @@ pub(super) fn children_budget(nodes: &[Node], budget: &mut Budget) -> Result<(),
     }
     Ok(())
 }
+
 pub(super) fn matched(
     state: &mut State<'_, '_>,
     key: usize,
@@ -114,6 +115,7 @@ pub(super) fn matched(
             state.literal(end)?;
         }
     }
+
     state.position = end;
     Ok(())
 }

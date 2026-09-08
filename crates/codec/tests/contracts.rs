@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 struct Score {
     value: f64,
 }
+
 impl NodeData for Score {
     fn validate(&self, children: &[Node]) -> bool {
         children.is_empty()
@@ -17,6 +18,7 @@ impl NodeData for Score {
 struct RenamedScore {
     value: f64,
 }
+
 impl NodeData for RenamedScore {}
 
 #[test]
@@ -26,6 +28,7 @@ fn shared_types_work_across_independent_registration_orders() {
         source: "猫".into(),
         children: vec![Node::leaf(Span { start: 0, end: 3 }, Score { value: 1.25 })],
     };
+
     assert!(producer.encode(&doc).is_err());
     producer.register::<Score>().unwrap();
     let bytes = producer.encode(&doc).unwrap();
@@ -46,7 +49,9 @@ fn first(codec: &mut Codec) -> Document {
     struct Collision {
         value: u8,
     }
+
     impl NodeData for Collision {}
+
     codec.register::<Collision>().unwrap();
     Document {
         source: "".into(),
@@ -61,7 +66,9 @@ fn second(codec: &mut Codec) -> Result<(), &'static str> {
     struct Collision {
         value: u16,
     }
+
     impl NodeData for Collision {}
+
     codec.register::<Collision>()
 }
 #[test]

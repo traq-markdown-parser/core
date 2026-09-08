@@ -22,6 +22,7 @@ impl Parser {
     pub fn parse_inline(&self, source: &str) -> Result<Document, ParseError> {
         self.run(source, true)
     }
+
     fn run(&self, source: &str, inline_only: bool) -> Result<Document, ParseError> {
         let grammar = &self.grammar;
         if source.len() > self.limits.input_bytes {
@@ -29,6 +30,7 @@ impl Parser {
         }
         let view = SourceView::new(source);
         let mut budget = Budget::new(self.limits);
+
         let children = if inline_only {
             inline::parse(&view, grammar, &mut budget, &block::References::new())?
         } else {
@@ -38,6 +40,7 @@ impl Parser {
             source: source.into(),
             children,
         };
+
         let remaining_work = budget.remaining_work();
         let node_count = document
             .validate(ValidationLimits {
@@ -56,6 +59,7 @@ impl Parser {
                     ParseError::InternalError
                 }
             })?;
+
         budget.spend(node_count)?;
         Ok(document)
     }

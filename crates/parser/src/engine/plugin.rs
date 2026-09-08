@@ -20,6 +20,7 @@ pub struct Plugin {
     pub(crate) definition: Arc<Definition>,
     pub(super) declaration: markdown_definitions::Plugin,
 }
+
 impl Plugin {
     pub fn new(declaration: &markdown_definitions::Plugin) -> Self {
         Self {
@@ -30,13 +31,16 @@ impl Plugin {
     pub fn name(&self) -> &str {
         self.declaration.name()
     }
+
     pub fn namespace(&self) -> Option<&PluginGroup> {
         self.declaration.namespace()
     }
+
     pub fn add(&mut self, rule: impl Into<Contribution>) -> &mut Self {
         Arc::make_mut(&mut self.definition).rules.push(rule.into());
         self
     }
+
     /// Construct ordinary text after text processing and joining.
     /// Exactly one provider must be registered when the grammar is built.
     pub fn text<T: NodeData>(
@@ -48,6 +52,7 @@ impl Plugin {
             .push(Arc::new(move |value| NodeKind::new(make(value))));
         self
     }
+
     pub fn inline_rules(&self) -> impl Iterator<Item = &InlineRule> {
         self.definition.rules.iter().filter_map(|r| {
             if let Contribution::Inline(r) = r {
@@ -57,6 +62,7 @@ impl Plugin {
             }
         })
     }
+
     pub fn block_rules(&self) -> impl Iterator<Item = &BlockRule> {
         self.definition.rules.iter().filter_map(|r| {
             if let Contribution::Block(r) = r {
@@ -66,6 +72,7 @@ impl Plugin {
             }
         })
     }
+
     pub fn text_rules(&self) -> impl Iterator<Item = &TextRule> {
         self.definition.rules.iter().filter_map(|r| {
             if let Contribution::Text(r) = r {
@@ -78,6 +85,7 @@ impl Plugin {
     pub(crate) fn same(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.definition, &other.definition)
     }
+
     pub(crate) fn description(&self) -> String {
         self.namespace().map_or_else(
             || self.name().into(),
@@ -85,6 +93,7 @@ impl Plugin {
         )
     }
 }
+
 pub(crate) fn group_description(group: &PluginGroup) -> String {
     let mut names = vec![group.name()];
     let mut parent = group.parent();

@@ -10,6 +10,7 @@ pub struct Rule<T: Clone> {
 pub(crate) struct RuleData<T: Clone> {
     pub implementation: T,
 }
+
 impl<T: Clone> Rule<T> {
     pub(crate) fn from(implementation: T) -> Self {
         Self {
@@ -21,9 +22,11 @@ impl<T: Clone> Rule<T> {
         self.label = Some(name.into());
         self
     }
+
     pub fn name(&self) -> Option<&str> {
         self.label.as_deref()
     }
+
     pub(crate) fn same(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.data, &other.data)
     }

@@ -11,6 +11,7 @@ impl BlockInput<'_> {
         self.source
             .span_for(self.lines[self.start].start..self.lines[end - 1].end)
     }
+
     /// Select body lines, including an empty body at any valid line boundary.
     pub fn body(&self, lines: Range<usize>) -> Result<SourceView, ParseError> {
         if lines.start > lines.end || lines.end > self.lines.len() {
@@ -26,6 +27,7 @@ impl BlockInput<'_> {
             self.source.join(&self.lines[lines])
         }
     }
+
     pub fn matched(
         &self,
         end: usize,
@@ -37,6 +39,7 @@ impl BlockInput<'_> {
             DraftNode::new(self.span_until(end)?, kind, content),
         ))
     }
+
     pub fn leaf(&self, end: usize, kind: NodeKind) -> Result<BlockMatch, ParseError> {
         self.matched(end, kind, DraftContent::Leaf)
     }

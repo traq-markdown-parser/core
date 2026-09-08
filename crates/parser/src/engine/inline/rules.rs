@@ -10,6 +10,7 @@ pub struct InlineDefinition {
     pub(crate) parse: Arc<ParseRule>,
 }
 pub type InlineRule = Rule<InlineDefinition>;
+
 impl InlineRule {
     pub fn new<F>(markers: &'static [u8], parse: F) -> Self
     where
@@ -24,6 +25,7 @@ impl InlineRule {
         })
     }
 }
+
 type TextParser =
     dyn Fn(&TextInput<'_>, &mut Budget) -> Result<Vec<TextMatch>, ParseError> + Send + Sync;
 #[derive(Clone)]
@@ -31,6 +33,7 @@ pub struct TextDefinition {
     pub(crate) parse: Arc<TextParser>,
 }
 pub type TextRule = Rule<TextDefinition>;
+
 impl TextRule {
     pub fn new<F>(parse: F) -> Self
     where

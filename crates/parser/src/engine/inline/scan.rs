@@ -17,6 +17,7 @@ impl InlineInput<'_> {
     pub fn tail(&self) -> &str {
         &self.source.text[self.position..]
     }
+
     pub fn reference(&self, key: &str) -> Option<&(String, Option<String>)> {
         self.references.get(key)
     }
@@ -52,6 +53,7 @@ impl State<'_, '_> {
         self.tokens.push(Token { start, end, kind });
         Ok(())
     }
+
     pub fn literal(&mut self, end: usize) -> Result<(), ParseError> {
         let value = &self.source.text[self.position..end];
         if let Some(Token {
@@ -84,6 +86,7 @@ pub(crate) fn parse(
         delimiters: vec![],
         brackets: vec![],
     };
+
     while state.position < source.text.len() {
         state.budget.spend(1)?;
         let mut found = None;
@@ -127,8 +130,10 @@ pub(crate) fn parse(
         {
             return Err(ParseError::InternalError);
         }
+
         apply::matched(&mut state, key, result)?;
     }
+
     delimiters::balance(&mut state.tokens, &mut state.delimiters, state.budget)?;
     let tokens = text::process(state.tokens, source, grammar, state.budget)?;
     tree::build(tokens, source, state.make_text, state.budget)

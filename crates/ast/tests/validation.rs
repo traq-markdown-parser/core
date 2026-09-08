@@ -2,6 +2,7 @@ use markdown_ast::{Document, Node, NodeData, Span, ValidationError as Error, Val
 
 #[derive(Clone, Debug, PartialEq)]
 struct Data(bool);
+
 impl NodeData for Data {
     fn validate(&self, _: &[Node]) -> bool {
         self.0
@@ -26,6 +27,7 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
         nodes: 3,
         depth: 2,
     };
+
     assert_eq!(doc.validate(limits), Ok(3));
     for (limits, error) in [
         (
@@ -43,6 +45,7 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
     doc.children[0].children[1].get_mut::<Data>().unwrap().0 = false;
     assert_eq!(doc.validate(limits), Err(Error::InvalidNode));
     doc.children[0].children[1].get_mut::<Data>().unwrap().0 = true;
+
     for (start, end) in [(1, 3), (3, 2), (0, 5), (0, usize::MAX)] {
         doc.children[0].children[1].span = Span { start, end };
         assert_eq!(doc.validate(limits), Err(Error::InvalidSpan));

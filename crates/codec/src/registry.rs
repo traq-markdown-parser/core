@@ -22,6 +22,7 @@ pub struct Codec {
     pub(crate) entries: HashMap<TypeId, Entry>,
     names: HashMap<String, TypeId>,
 }
+
 impl Codec {
     /// Registration is atomic; duplicate types and names are rejected.
     pub fn register<T: NodeData + NodeType + Serialize + DeserializeOwned>(
@@ -35,6 +36,7 @@ impl Codec {
         if self.entries.contains_key(&id) || self.names.contains_key(&name) {
             return Err("duplicate Rust type or wire contract");
         }
+
         self.names.insert(name.clone(), id);
         self.entries.insert(
             id,
@@ -48,6 +50,7 @@ impl Codec {
         );
         Ok(())
     }
+
     pub fn encode(&self, document: &Document) -> serde_json::Result<Vec<u8>> {
         crate::output::encode(document, self)
     }

@@ -6,6 +6,7 @@ pub struct ValidationLimits {
     pub nodes: usize,
     pub depth: usize,
 }
+
 impl Default for ValidationLimits {
     fn default() -> Self {
         Self {
@@ -24,6 +25,7 @@ pub enum ValidationError {
     InvalidSpan,
     InvalidNode,
 }
+
 impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
@@ -35,6 +37,7 @@ impl std::fmt::Display for ValidationError {
         })
     }
 }
+
 impl std::error::Error for ValidationError {}
 
 impl Document {
@@ -47,10 +50,12 @@ impl Document {
         if self.source.len() > limits.source_bytes {
             return Err(ValidationError::SourceBytes);
         }
+
         let root = Span {
             start: 0,
             end: self.source.len(),
         };
+
         // Count scheduled nodes before extending the stack. Wide trees cannot
         // allocate more pending work than the configured node budget.
         let mut count = self.children.len();
@@ -63,6 +68,7 @@ impl Document {
             .rev()
             .map(|node| (node, 1, root))
             .collect();
+
         while let Some((node, depth, parent)) = pending.pop() {
             if depth > limits.depth {
                 return Err(ValidationError::Depth);
@@ -79,6 +85,7 @@ impl Document {
             if !node.validate() {
                 return Err(ValidationError::InvalidNode);
             }
+
             if node.children.len() > limits.nodes - count {
                 return Err(ValidationError::Nodes);
             }
@@ -95,6 +102,7 @@ impl Document {
                 );
             }
         }
+
         Ok(count)
     }
 }

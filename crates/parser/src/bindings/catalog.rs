@@ -25,6 +25,7 @@ pub struct Catalog {
     pub(super) presets: Vec<PresetSpec>,
     pub exports: Value,
 }
+
 impl Catalog {
     fn group(&mut self, group: &PluginGroup) -> usize {
         if let Some(index) = self.groups.iter().position(|g| g == group) {
@@ -33,6 +34,7 @@ impl Catalog {
         if let Some(parent) = group.parent() {
             self.group(parent);
         }
+
         self.groups.push(group.clone());
         self.groups.len() - 1
     }
@@ -43,11 +45,13 @@ impl Catalog {
         if let Some(group) = plugin.namespace() {
             self.group(group);
         }
+
         for rule in plugin.definition.rules.iter() {
             if !self.rules.iter().any(|r| r.same(rule)) {
                 self.rules.push(rule.clone());
             }
         }
+
         self.plugins.push(plugin.clone());
         self.plugins.len() - 1
     }
@@ -58,6 +62,7 @@ impl Catalog {
         // Metadata registration validates the recipe without compiling dispatch
         // tables or invoking a preset parser for recognizer warmup.
         definition.validate()?;
+
         let description = definition.describe();
         let plugins = definition.plugins.iter().map(|p| self.plugin(p)).collect();
         let order = definition
@@ -65,6 +70,7 @@ impl Catalog {
             .iter()
             .map(|(_, r)| self.rule_index(r))
             .collect();
+
         self.presets.push(PresetSpec {
             plugins,
             order,
@@ -80,6 +86,7 @@ impl Catalog {
     }
     pub fn preset_composition(&self, index: usize) -> Option<Composition> {
         let preset = self.presets.get(index)?;
+
         Some(Composition {
             groups: self.group_specs(),
             plugins: preset
@@ -140,6 +147,7 @@ impl Catalog {
                 phase: r.phase(),
             })
             .collect::<Vec<_>>();
+
         let plugins = self
             .plugins
             .iter()

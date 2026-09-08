@@ -10,6 +10,7 @@ fn codec() -> Codec {
     codec.register::<Text>().unwrap();
     codec
 }
+
 fn deep_json(depth: usize) -> String {
     let mut json = String::from(r#"{"source":"","children":["#);
     for _ in 1..depth {
@@ -36,6 +37,7 @@ fn bounded_input_and_output_accept_the_boundary() {
             },
         )],
     };
+
     let bytes = codec.encode(&document).unwrap();
     let limits = DecodeLimits {
         json_bytes: bytes.len(),
@@ -67,6 +69,7 @@ fn bounded_input_and_output_accept_the_boundary() {
             .is_err()
     );
     let at_limit = codec.decode(deep_json(64).as_bytes()).unwrap();
+
     assert!(codec.encode(&at_limit).is_ok());
     for depth in [65, 5000] {
         assert!(

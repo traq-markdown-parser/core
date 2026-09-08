@@ -10,6 +10,7 @@ pub struct Preset<R> {
 pub struct PresetBuilder<R> {
     plugins: Vec<Plugin<R>>,
 }
+
 impl<R> PresetBuilder<R> {
     pub fn new() -> Self {
         Self::default()
@@ -29,6 +30,7 @@ impl<R> PresetBuilder<R> {
                 return Err("duplicate_handler");
             }
         }
+
         self.plugins.push(plugin.clone());
         Ok(self)
     }
@@ -47,6 +49,7 @@ impl<R> PresetBuilder<R> {
     pub fn build(self) -> Result<Preset<R>> {
         validate_names(self.plugins.iter().map(|plugin| &plugin.declaration))
             .map_err(|_| "duplicate_name")?;
+
         let handlers = self
             .plugins
             .iter()

@@ -4,6 +4,7 @@ use markdown_ast::{Document, ValidationError, ValidationLimits};
 pub struct Extractor<R> {
     preset: Preset<R>,
 }
+
 impl<R> Extractor<R> {
     pub fn new(preset: &Preset<R>) -> Self {
         Self {
@@ -25,6 +26,7 @@ impl<R> Extractor<R> {
                     "resource_limit"
                 }
             })?;
+
         let mut pending: Vec<_> = document.children.iter().rev().collect();
         let mut result = R::default();
         while let Some(node) = pending.pop() {
@@ -33,6 +35,7 @@ impl<R> Extractor<R> {
             }
             pending.extend(node.children.iter().rev());
         }
+
         Ok(result)
     }
 }

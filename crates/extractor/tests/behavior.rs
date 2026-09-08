@@ -12,12 +12,15 @@ use std::{
 
 #[derive(Clone, Debug, PartialEq)]
 struct Reference(u32);
+
 impl NodeData for Reference {}
 #[derive(Clone, Debug, PartialEq)]
 struct Container;
+
 impl NodeData for Container {}
 #[derive(Clone, Debug, PartialEq)]
 struct Invalid;
+
 impl NodeData for Invalid {
     fn validate(&self, _: &[Node]) -> bool {
         false
@@ -34,12 +37,14 @@ struct Collected {
 fn node<T: NodeData>(value: T, children: Vec<Node>) -> Node {
     Node::new(Span { start: 0, end: 0 }, value, children)
 }
+
 fn document(children: Vec<Node>) -> Document {
     Document {
         source: String::new(),
         children,
     }
 }
+
 fn plugin(calls: Arc<AtomicUsize>) -> Plugin<Collected> {
     let mut plugin = Plugin::new(&Declaration::new("references"));
     plugin
@@ -55,6 +60,7 @@ fn plugin(calls: Arc<AtomicUsize>) -> Plugin<Collected> {
         .unwrap();
     plugin
 }
+
 fn extractor(plugin: &Plugin<Collected>) -> Extractor<Collected> {
     let mut builder = PresetBuilder::new();
     builder.add(plugin).unwrap();
@@ -72,6 +78,7 @@ fn fresh_results_keep_preorder_duplicates_and_unregistered_descendants() {
             node(Reference(1), vec![]),
         ],
     )]);
+
     let first = extractor.extract(&doc).unwrap();
     assert_eq!(first.ids, [1, 2, 1]);
     assert_eq!(first.count.get(), 3);
@@ -94,6 +101,7 @@ fn validation_precedes_all_handlers_and_failed_runs_do_not_leak_results() {
         node(Reference(1), vec![]),
         node(Container, vec![node(Invalid, vec![])]),
     ]);
+
     assert!(matches!(extractor.extract(&doc), Err("invalid_node")));
     assert_eq!(calls.load(Ordering::Relaxed), 0);
     let mut doc = document(vec![node(Reference(1), vec![])]);
@@ -105,6 +113,7 @@ fn validation_precedes_all_handlers_and_failed_runs_do_not_leak_results() {
         node(Reference(1), vec![]),
         node(Reference(99), vec![]),
     ]);
+
     assert!(matches!(extractor.extract(&doc), Err("handler_failure")));
     assert!(extractor.extract(&document(vec![])).unwrap().ids.is_empty());
 }
@@ -116,6 +125,7 @@ fn snapshots_duplicate_rejection_and_removal_are_atomic() {
     let mut builder = PresetBuilder::new();
     builder.add(&plugin).unwrap();
     let old = Extractor::new(&builder.clone().build().unwrap());
+
     assert!(builder.add(&plugin).is_err());
     assert!(plugin.on::<Reference>(|_, _| Ok(())).is_err());
     builder.clone().remove(&plugin).unwrap();
@@ -150,6 +160,7 @@ fn snapshots_duplicate_rejection_and_removal_are_atomic() {
 fn limits_also_apply_to_unregistered_nodes() {
     let extractor = extractor(&plugin(Arc::new(AtomicUsize::new(0))));
     let mut doc = document(vec![node(Container, vec![]); 16_384]);
+
     assert!(extractor.extract(&doc).is_ok());
     doc.children.push(node(Container, vec![]));
     assert!(matches!(extractor.extract(&doc), Err("resource_limit")));
@@ -172,6 +183,7 @@ fn limits_also_apply_to_unregistered_nodes() {
 fn selected_names_are_checked_using_namespace_identity() {
     let group = Declaration::group("generic");
     let mut builder = PresetBuilder::<Collected>::new();
+
     builder.add(&Plugin::new(&group.new("same"))).unwrap();
     builder.add(&Plugin::new(&group.new("same"))).unwrap();
     assert!(matches!(builder.build(), Err("duplicate_name")));

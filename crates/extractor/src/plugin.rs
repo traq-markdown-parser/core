@@ -9,6 +9,7 @@ pub struct Plugin<R> {
     pub(crate) declaration: Declaration,
     pub(crate) handlers: Arc<HashMap<TypeId, Handler<R>>>,
 }
+
 impl<R> Clone for Plugin<R> {
     fn clone(&self) -> Self {
         Self {
@@ -17,6 +18,7 @@ impl<R> Clone for Plugin<R> {
         }
     }
 }
+
 impl<R> Plugin<R> {
     pub fn new(declaration: &Declaration) -> Self {
         Self {
@@ -33,6 +35,7 @@ impl<R> Plugin<R> {
         if self.handlers.contains_key(&id) {
             return Err("duplicate_handler");
         }
+
         Arc::make_mut(&mut self.handlers).insert(
             id,
             Arc::new(move |node, result| {

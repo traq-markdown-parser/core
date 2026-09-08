@@ -46,30 +46,37 @@ impl NodeKind {
     pub fn new<T: NodeData>(data: T) -> Self {
         Self(Box::new(data))
     }
+
     pub fn get<T: NodeData>(&self) -> Option<&T> {
         self.0.any().downcast_ref()
     }
+
     pub fn get_mut<T: NodeData>(&mut self) -> Option<&mut T> {
         self.0.any_mut().downcast_mut()
     }
+
     /// Process-local lookup key. Never use this as a persisted contract name.
     pub fn data_type_id(&self) -> TypeId {
         self.0.any().type_id()
     }
+
     pub fn validate(&self, children: &[Node]) -> bool {
         self.0.validate(children)
     }
 }
+
 impl<T: NodeData> From<T> for NodeKind {
     fn from(data: T) -> Self {
         Self::new(data)
     }
 }
+
 impl Clone for NodeKind {
     fn clone(&self) -> Self {
         Self(self.0.copy())
     }
 }
+
 impl PartialEq for NodeKind {
     fn eq(&self, other: &Self) -> bool {
         self.0.equals(other.0.as_ref())

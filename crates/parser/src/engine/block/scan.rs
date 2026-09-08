@@ -33,8 +33,10 @@ pub(crate) fn parse(
     } else {
         source
     };
+
     let mut references = References::new();
     let batch = tokenize(source, grammar, budget, &mut references, 0)?;
+
     resolve_inlines(batch.nodes, grammar, budget, &references, 0)
 }
 
@@ -52,6 +54,7 @@ fn tokenize(
         .iter()
         .rposition(|line| !blank(source.text[line.clone()].trim_end_matches('\n')))
         .unwrap_or(0);
+
     let (mut position, mut loose, mut nodes) = (0, false, vec![]);
     while position < lines.len() {
         budget.token()?;
@@ -69,6 +72,7 @@ fn tokenize(
             }
         }
         let found = matched.ok_or(ParseError::InternalError)?;
+
         if found.end <= position || found.end > lines.len() {
             return Err(ParseError::InternalError);
         }
@@ -77,11 +81,13 @@ fn tokenize(
                 .entry(definition.key)
                 .or_insert((definition.destination, definition.title));
         }
+
         for mut node in found.nodes {
             resolve_blocks(&mut node, grammar, budget, references, depth)?;
             nodes.push(node);
         }
         position = found.end;
+
         if found.consume_separator && position < lines.len() && blank(input.line(position)) {
             loose |= position < last_nonblank;
             position += 1;
@@ -98,6 +104,7 @@ fn resolve_blocks(
     depth: usize,
 ) -> Result<(), ParseError> {
     budget.depth(depth)?;
+
     match &mut node.content {
         DraftContent::Blocks(source) => {
             let batch = tokenize(source, grammar, budget, references, depth + 1)?;
@@ -110,6 +117,7 @@ fn resolve_blocks(
         }
         _ => {}
     }
+
     if let Some(finish) = node.finish {
         finish(node);
     }
@@ -124,6 +132,7 @@ fn resolve_inlines(
     depth: usize,
 ) -> Result<Vec<Node>, ParseError> {
     budget.depth(depth)?;
+
     let mut nodes = Vec::with_capacity(drafts.len());
     for draft in drafts {
         let children = match draft.content {
@@ -136,6 +145,7 @@ fn resolve_inlines(
             }
             DraftContent::Blocks(_) => return Err(ParseError::InternalError),
         };
+
         nodes.push(Node::new(draft.span, draft.kind, children));
     }
     Ok(nodes)

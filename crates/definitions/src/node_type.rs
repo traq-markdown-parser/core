@@ -15,6 +15,7 @@ macro_rules! primitives {
         }
     )* };
 }
+
 primitives! {
     () => "()", bool => "bool", char => "char", str => "str",
     u8 => "u8", u16 => "u16", u32 => "u32", u64 => "u64", u128 => "u128", usize => "usize",
@@ -29,7 +30,9 @@ macro_rules! containers {
         }
     )* };
 }
+
 containers! { Vec => "std::vec::Vec", Option => "core::option::Option", Box => "std::boxed::Box" }
+
 impl<T: NodeType, const N: usize> NodeType for [T; N] {
     fn type_key() -> String {
         format!("[{};{}]", T::type_key(), N)

@@ -28,24 +28,30 @@ impl DraftNode {
             finish: None,
         }
     }
+
     pub fn leaf(span: Span, kind: NodeKind) -> Self {
         Self::new(span, kind, DraftContent::Leaf)
     }
+
     pub fn inline(span: Span, kind: NodeKind, source: SourceView) -> Self {
         Self::new(span, kind, DraftContent::Inline(source))
     }
+
     pub fn nodes(span: Span, kind: NodeKind, nodes: Vec<Self>) -> Self {
         Self::new(span, kind, DraftContent::Nodes(nodes))
     }
+
     pub fn blocks(span: Span, kind: NodeKind, source: SourceView) -> Self {
         Self::new(span, kind, DraftContent::Blocks(source))
     }
+
     pub fn children(&self) -> &[DraftNode] {
         match &self.content {
             DraftContent::Nodes(nodes) => nodes,
             _ => &[],
         }
     }
+
     pub fn is_loose(&self) -> bool {
         self.loose
     }

@@ -1,5 +1,4 @@
-use markdown_ast::NodeData;
-use markdown_ast::{Document, Node, Span};
+use markdown_ast::{Document, Node, NodeData, Span};
 use markdown_codec::Codec;
 use markdown_definitions::NodeType;
 use serde::{Deserialize, Serialize};
@@ -8,6 +7,7 @@ use serde::{Deserialize, Serialize};
 struct Heading {
     level: u8,
 }
+
 impl NodeData for Heading {
     fn validate(&self, _children: &[Node]) -> bool {
         (1..=6).contains(&self.level)
@@ -17,6 +17,7 @@ impl NodeData for Heading {
 struct Text {
     value: String,
 }
+
 impl NodeData for Text {
     fn validate(&self, children: &[Node]) -> bool {
         children.is_empty()
@@ -27,6 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut codec = Codec::default();
     codec.register::<Heading>()?;
     codec.register::<Text>()?;
+
     let document = Document {
         source: "# hello".into(),
         children: vec![Node::new(
@@ -40,6 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )],
         )],
     };
+
     let json = codec.encode(&document)?;
     let decoded = codec.decode(&json)?;
     assert_eq!(document, decoded);

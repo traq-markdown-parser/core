@@ -6,6 +6,7 @@ pub struct NameCollision {
     pub scope: String,
     pub name: String,
 }
+
 impl std::fmt::Display for NameCollision {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "duplicate name {:?} in {}", self.name, self.scope)
@@ -22,6 +23,7 @@ pub fn validate_names<'a>(
     plugins: impl IntoIterator<Item = &'a Plugin>,
 ) -> Result<(), NameCollision> {
     let plugins: Vec<_> = plugins.into_iter().collect();
+
     let mut groups: Vec<&PluginGroup> = vec![];
     for plugin in &plugins {
         let mut parent = plugin.namespace();
@@ -33,6 +35,7 @@ pub fn validate_names<'a>(
             parent = group.parent();
         }
     }
+
     let entries: Vec<_> = groups
         .iter()
         .map(|group| (group.parent(), group.name()))
@@ -42,6 +45,7 @@ pub fn validate_names<'a>(
                 .map(|plugin| (plugin.namespace(), plugin.name())),
         )
         .collect();
+
     for (index, (parent, name)) in entries.iter().enumerate() {
         if entries[..index].contains(&(*parent, *name)) {
             let mut scope = vec![];
@@ -51,6 +55,7 @@ pub fn validate_names<'a>(
                 parent = group.parent();
             }
             scope.reverse();
+
             return Err(NameCollision {
                 scope: if scope.is_empty() {
                     "<root>".into()

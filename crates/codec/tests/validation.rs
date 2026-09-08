@@ -9,6 +9,7 @@ use support::{Heading, Text};
 static CHECKS: AtomicUsize = AtomicUsize::new(0);
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, NodeType)]
 struct Group {}
+
 impl NodeData for Group {
     fn validate(&self, children: &[Node]) -> bool {
         CHECKS.fetch_add(1, Ordering::Relaxed);
@@ -37,6 +38,7 @@ fn type_owned_checks_apply_once_per_node_in_both_directions() {
             )],
         )],
     };
+
     let bytes = codec.encode(&doc).unwrap();
     assert_eq!(CHECKS.swap(0, Ordering::Relaxed), 2);
     assert_eq!(codec.decode(&bytes).unwrap(), doc);
@@ -44,6 +46,7 @@ fn type_owned_checks_apply_once_per_node_in_both_directions() {
     doc.children[0]
         .children
         .push(Node::leaf(span, Heading { level: 2 }));
+
     assert!(codec.encode(&doc).is_err()); // The child is valid, but this parent forbids its type.
     doc.children = vec![Node::leaf(span, Heading { level: 2 })];
     let json = String::from_utf8(codec.encode(&doc).unwrap()).unwrap();

@@ -16,6 +16,7 @@ impl<'de> Deserialize<'de> for Fields<'de> {
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 f.write_str("an object with distinct field names")
             }
+
             fn visit_map<M: MapAccess<'de>>(self, mut map: M) -> Result<Self::Value, M::Error> {
                 let mut fields = BTreeMap::new();
                 while let Some((key, value)) = map.next_entry::<String, &'de RawValue>()? {
@@ -34,6 +35,7 @@ impl<'a> Fields<'a> {
     pub fn take(&mut self, name: &str) -> serde_json::Result<&'a RawValue> {
         self.0.remove(name).ok_or_else(|| error("missing field"))
     }
+
     pub fn end(self) -> serde_json::Result<()> {
         if self.0.is_empty() {
             Ok(())

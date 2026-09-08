@@ -17,13 +17,16 @@ pub(crate) struct CompiledGrammar {
     pub(crate) make_text: super::plugin::TextFactory,
     pub(crate) dispatch: [Vec<usize>; 256],
 }
+
 impl Grammar {
     pub fn to_builder(&self) -> GrammarBuilder {
         self.data.definition.clone()
     }
+
     pub fn plugins(&self) -> &[Plugin] {
         &self.data.definition.plugins
     }
+
     pub fn describe(&self) -> String {
         self.data.definition.describe()
     }
@@ -37,6 +40,7 @@ pub enum BuildError {
     DuplicateName { scope: String, name: String },
     InvalidDefinition { reason: String },
 }
+
 impl std::fmt::Display for BuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
