@@ -1,6 +1,10 @@
 import type { Document } from "./generated/Document.js";
 import type { ParseError } from "./generated/ParseError.js";
 import type { CatalogViews } from "./generated/catalog.mjs";
+import type {
+  Plugin as Declaration,
+  PluginGroup,
+} from "@traptitech/markdown-definitions";
 export type { Document, ParseError };
 export type { Node } from "./generated/Node.js";
 export type { NodeKind } from "./generated/NodeKind.js";
@@ -25,16 +29,8 @@ export interface Rule<P extends Phase = Phase> {
   readonly name: string | null;
   readonly phase: P;
 }
-export class PluginGroup {
-  constructor(name: string);
-  readonly name: string;
-  readonly parent: PluginGroup | null;
-  group(name: string): PluginGroup;
-  new(name: string): Plugin;
-}
 export class Plugin {
-  constructor(name: string);
-  static group(name: string): PluginGroup;
+  constructor(declaration: Declaration);
   readonly name: string;
   readonly namespace: PluginGroup | null;
   readonly inlineRules: readonly Rule<"inline">[];

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/definitions",
     "packages/browser",
     "packages/renderer",
     "examples/typescript"

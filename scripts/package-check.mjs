@@ -25,7 +25,7 @@ const run = (args, cwd = root) =>
 const npm = (args, cwd) => run([npmCli, ...args], cwd);
 const dist = path.join(root, "dist");
 await mkdir(dist, { recursive: true });
-const archives = ["browser", "renderer"].map((name) => {
+const archives = ["definitions", "browser", "renderer"].map((name) => {
   const packed = JSON.parse(
     npm(
       ["pack", "--ignore-scripts", "--json", "--pack-destination", dist],

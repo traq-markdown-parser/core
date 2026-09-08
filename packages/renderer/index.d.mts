@@ -1,33 +1,48 @@
-import type { Parser, Document, Node } from "@traptitech/markdown-parser";
-import type { names } from "@traptitech/markdown-parser/nodes";
+import type { Plugin as Declaration } from "@traptitech/markdown-definitions";
 import type Token from "markdown-it/lib/token.mjs";
+
+/** Structural AST input; grammar packages own the payload types. */
+export interface Node {
+  kind: string;
+  span: { start: number; end: number };
+  data: unknown;
+  children?: Node[];
+}
+export interface Document {
+  source: string;
+  children: Node[];
+}
 export interface RenderContext {
   source: string;
-  store: unknown;
-  tight: boolean;
-  validateLink(destination: string): boolean;
-  inline(nodes?: Node<true>[]): Token[];
-  blocks(nodes?: Node<true>[], tight?: boolean): Token[];
-  fallback(node: Node<true>): Token[];
+  inline(nodes?: Node[]): Token[];
+  blocks(nodes?: Node[]): Token[];
+  fallback(node: Node): Token[];
 }
-export type Handler = (node: Node<true>, context: RenderContext) => Token[];
-export type CommonKind = (typeof names)[
-  | "Blockquote" | "CodeBlock" | "Emphasis" | "Hardbreak" | "Heading"
-  | "HtmlBlock" | "HtmlInline" | "Image" | "InlineCode" | "Link"
-  | "List" | "ListItem" | "Paragraph" | "Softbreak" | "Strong" | "Text"
-  | "ThematicBreak"
-];
-export interface RendererOptions {
-  store?: unknown;
-  validateLink?(destination: string): boolean;
-  overrides?: Partial<Record<CommonKind, Handler | null>>;
-  extensions?: ReadonlyMap<string, Handler | null>;
+export type Handler = (node: Node, context: RenderContext) => Token[];
+export class Plugin {
+  constructor(declaration: Declaration);
+  on(kind: string, handler: Handler): this;
+  replace(kind: string, handler: Handler): this;
+}
+declare const identity: unique symbol;
+export interface Preset {
+  readonly [identity]: "renderer-preset";
+}
+export class PresetBuilder {
+  add(plugin: Plugin): this;
+  remove(plugin: Plugin): this;
+  build(): Preset;
 }
 export interface Renderer {
-  render(document: Document<true>): Token[];
-  renderInline(document: Document<true>): Token[];
+  render(document: Document): Token[];
+  renderInline(document: Document): Token[];
 }
-export function createRenderer(options?: RendererOptions): Renderer;
-export function installParser<
-  T extends { md: { validateLink(destination: string): boolean } },
->(renderer: T, parser: Parser<boolean>, options?: RendererOptions): T;
+export function renderer(preset: Preset): Renderer;
+export function installParser<T extends { md: object }>(
+  target: T,
+  parser: {
+    parse(source: string): Document;
+    parseInline(source: string): Document;
+  },
+  renderer: Renderer,
+): T;

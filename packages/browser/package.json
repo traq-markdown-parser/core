@@ -24,5 +24,8 @@
     }
   },
   "description": "Composable Markdown parser shared by Rust, Go and JavaScript through WebAssembly.",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@traptitech/markdown-definitions": "0.1.0"
+  }
 }

@@ -1,3 +1,4 @@
+import { Plugin as Declaration } from "@traptitech/markdown-definitions";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -52,8 +53,8 @@ test("explicit leases release Wasm grammars and repeated construction plateaus",
       () =>
         runtime
           .builder()
-          .add(new Plugin("same"))
-          .add(new Plugin("same"))
+          .add(new Plugin(new Declaration("same")))
+          .add(new Plugin(new Declaration("same")))
           .build(),
       GrammarBuildError,
     );

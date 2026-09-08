@@ -1,3 +1,4 @@
+import { Plugin as Declaration } from "@traptitech/markdown-definitions";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -14,26 +15,34 @@ const bytes = await readFile(
 test("shared namespaces, display names and adoption match core semantics", async (t) => {
   const r = await loadRuntime(bytes);
   t.after(() => r.dispose());
-  const generic = Plugin.group("generic");
+  const generic = Declaration.group("generic");
   const github = generic.group("github");
-  const math = generic.new("math");
-  const issue = github.new("math");
+  const math = new Plugin(generic.new("math"));
+  const issue = new Plugin(github.new("math"));
   const b = r.builder().add(r.plugins.commonmark.core).add(math).add(issue);
   assert.throws(() => b.add(math), GrammarBuildError);
   const g = b.build();
   t.after(() => g.dispose());
   assert.match(g.describe(), /generic\/github\/math/);
-  const bad = r.builder().add(math).add(generic.new("math"));
+  const bad = r
+    .builder()
+    .add(math)
+    .add(new Plugin(generic.new("math")));
   assert.throws(
     () => bad.build(),
     (e) => e.detail?.code === "duplicate_name",
   );
-  const other = Plugin.group("generic");
+  const other = Declaration.group("generic");
   assert.throws(
-    () => r.builder().add(math).add(other.new("other")).build(),
+    () =>
+      r
+        .builder()
+        .add(math)
+        .add(new Plugin(other.new("other")))
+        .build(),
     GrammarBuildError,
   );
-  assert.throws(() => new Plugin(), /display name/);
+  assert.throws(() => new Declaration(), /display name/);
   assert.throws(() => r.builder().build(), GrammarBuildError);
   b.remove(math);
   b.build().dispose();
@@ -47,8 +56,14 @@ test("preset forks and parser leases remain independent", async (t) => {
   const b = r.presets.traq.v1.toBuilder().remove(r.plugins.generic.math);
   const g = b.build(),
     p = r.parser(g);
-  assert.match(JSON.stringify(original.parse("$x$")), new RegExp(names.InlineMath));
-  assert.doesNotMatch(JSON.stringify(p.parse("$x$")), new RegExp(names.InlineMath));
+  assert.match(
+    JSON.stringify(original.parse("$x$")),
+    new RegExp(names.InlineMath),
+  );
+  assert.doesNotMatch(
+    JSON.stringify(p.parse("$x$")),
+    new RegExp(names.InlineMath),
+  );
   g.dispose();
   g.dispose();
   assert.equal(p.parseInline("$x$").children[0].data.value, "$x$");
@@ -64,8 +79,8 @@ test("preset forks and parser leases remain independent", async (t) => {
   p.dispose();
   assert.throws(() => p.parse("x"), /disposed/);
   // Registration snapshots definitions; edits never mutate a built grammar.
-  const group = Plugin.group("custom"),
-    plugin = group.new("math");
+  const group = Declaration.group("custom"),
+    plugin = new Plugin(group.new("math"));
   const [rule] = r.plugins.generic.math.inlineRules;
   plugin.add(rule);
   const built = r.builder().add(r.plugins.commonmark.core).add(plugin).build();

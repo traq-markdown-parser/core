@@ -1,5 +1,7 @@
 import { names } from "@traptitech/markdown-parser/nodes";
 import { token, pair, inlineToken } from "../tokens.mjs";
+import { Plugin as Declaration } from "@traptitech/markdown-definitions";
+import { Plugin } from "../plugin.mjs";
 
 function math(node, block) {
   const t = token(
@@ -41,10 +43,16 @@ function table(node, ctx) {
     { block: true },
   );
 }
-export const generic = new Map([
-  [names.Mark, (n, ctx) => pair("mark", "mark", ctx.inline(n.children))],
-  [names.Strikethrough, (n, ctx) => pair("s", "s", ctx.inline(n.children))],
-  [names.InlineMath, (n) => math(n, false)],
-  [names.BlockMath, (n) => math(n, true)],
-  [names.Table, table],
-]);
+const declaration = Declaration.group("generic").new("presentation");
+export function plugin() {
+  const result = new Plugin(declaration);
+  for (const [kind, handler] of [
+    [names.Mark, (n, ctx) => pair("mark", "mark", ctx.inline(n.children))],
+    [names.Strikethrough, (n, ctx) => pair("s", "s", ctx.inline(n.children))],
+    [names.InlineMath, (n) => math(n, false)],
+    [names.BlockMath, (n) => math(n, true)],
+    [names.Table, table],
+  ])
+    result.on(kind, handler);
+  return result;
+}

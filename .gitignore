@@ -28,6 +28,7 @@
 /packages/browser/contract.json
 /packages/browser/LICENSE
 /packages/renderer/LICENSE
+/packages/definitions/LICENSE
 *.exe
 *.log
 *.tsbuildinfo

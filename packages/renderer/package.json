@@ -21,6 +21,18 @@
     "./traq/v1": {
       "types": "./profiles/traq/v1.d.mts",
       "import": "./profiles/traq/v1.mjs"
+    },
+    "./traq": {
+      "types": "./profiles/traq/index.d.mts",
+      "import": "./profiles/traq/index.mjs"
+    },
+    "./generic": {
+      "types": "./extensions/generic.d.mts",
+      "import": "./extensions/generic.mjs"
+    },
+    "./trap": {
+      "types": "./extensions/trap.d.mts",
+      "import": "./extensions/trap.mjs"
     }
   },
   "peerDependencies": {
@@ -28,7 +40,8 @@
     "@traptitech/markdown-parser": "0.1.x"
   },
   "dependencies": {
-    "@types/markdown-it": "^14.2.0"
+    "@types/markdown-it": "^14.2.0",
+    "@traptitech/markdown-definitions": "0.1.0"
   },
   "description": "Render shared Markdown ASTs as markdown-it tokens with configurable presentation handlers.",
   "license": "MIT"

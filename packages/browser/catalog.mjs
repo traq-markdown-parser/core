@@ -1,4 +1,8 @@
-import { Plugin, PluginGroup, makePlugin, makeRule } from "./plugin.mjs";
+import {
+  Plugin as Declaration,
+  PluginGroup,
+} from "@traptitech/markdown-definitions";
+import { Plugin, makePlugin, makeRule } from "./plugin.mjs";
 import { data } from "./identity.mjs";
 export function loadCatalog(runtime, catalog) {
   const groups = [];
@@ -13,8 +17,11 @@ export function loadCatalog(runtime, catalog) {
     makeRule(runtime, index, definition),
   );
   const plugins = catalog.plugins.map((definition) => {
-    const plugin =
-      definition.group === null ? new Plugin(definition.name) : groups[definition.group].new(definition.name);
+    const plugin = new Plugin(
+      definition.group === null
+        ? new Declaration(definition.name)
+        : groups[definition.group].new(definition.name),
+    );
     const state = data(plugin, "plugin");
     return makePlugin({
       ...state,

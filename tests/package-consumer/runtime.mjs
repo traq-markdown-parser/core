@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { loadRuntime } from "@traptitech/markdown-parser";
-import { createRenderer } from "@traptitech/markdown-renderer";
+import * as html from "@traptitech/markdown-renderer";
+import * as common from "@traptitech/markdown-renderer/common";
 
 const bytes = await readFile(
   new URL(import.meta.resolve("@traptitech/markdown-parser/parser.wasm")),
@@ -26,7 +27,7 @@ try {
         .kind,
       names.List,
     );
-    const render = createRenderer({ extensions: new Map() });
+    const render = html.renderer(common.preset());
     assert.equal(
       render.render(parser.parse(":stamp:"))[1].children[0].content,
       ":stamp:",

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { loadRuntime } from "@traptitech/markdown-parser";
-import { createRenderer } from "@traptitech/markdown-renderer";
+import * as html from "@traptitech/markdown-renderer";
+import * as commonmark from "@traptitech/markdown-renderer/common";
 import MarkdownIt from "markdown-it";
 
 const wasm = await readFile(
@@ -15,7 +16,7 @@ try {
 
     // The adapter produces markdown-it tokens; parsing is handled by Wasm.
     // Extensions without a presentation handler remain escaped source text.
-    const renderer = createRenderer();
+    const renderer = html.renderer(commonmark.preset());
     const markdown = new MarkdownIt();
     console.log(
       markdown.renderer.render(renderer.render(document), markdown.options, {}),

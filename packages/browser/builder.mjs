@@ -18,7 +18,8 @@ export class GrammarBuilder {
         element: state.name ?? "<anonymous plugin>",
       });
     for (const provider of state.text)
-      if (provider.runtime !== this.#runtime) throw new TypeError("Text provider belongs to a different Runtime");
+      if (provider.runtime !== this.#runtime)
+        throw new TypeError("Text provider belongs to a different Runtime");
     const used = new Set(this.#order);
     for (const rule of state.rules) {
       const { index } = owned(rule, "rule", this.#runtime);
@@ -78,12 +79,11 @@ export function composition(snapshot) {
     indices = new Map();
   function visit(group) {
     if (!group) return null;
-    const state = data(group, "group");
-    if (indices.has(state.symbol)) return indices.get(state.symbol);
-    const parent = visit(state.parent),
+    if (indices.has(group)) return indices.get(group);
+    const parent = visit(group.parent),
       index = groups.length;
-    groups.push({ parent, name: state.name });
-    indices.set(state.symbol, index);
+    groups.push({ parent, name: group.name });
+    indices.set(group, index);
     return index;
   }
   const plugins = snapshot.plugins.map((p) => ({

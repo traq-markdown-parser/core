@@ -1,38 +1,20 @@
-import { metadata, data, label } from "./identity.mjs";
-
-export class PluginGroup {
-  constructor(name, parent = null) {
-    metadata.set(this, { kind: "group", symbol: {}, parent, name: label(name) });
-  }
-
-  get name() {
-    return data(this, "group").name;
-  }
-  get parent() {
-    return data(this, "group").parent;
-  }
-  group(name) {
-    return new PluginGroup(name, this);
-  }
-  new(name) {
-    return makePlugin({ ...data(new Plugin(name), "plugin"), group: this });
-  }
-}
+import { Plugin as Declaration } from "@traptitech/markdown-definitions";
+import { metadata, data } from "./identity.mjs";
 
 export class Plugin {
-  constructor(name) {
+  constructor(declaration) {
+    if (!(declaration instanceof Declaration))
+      throw new TypeError("Expected Plugin declaration");
     metadata.set(this, {
       kind: "plugin",
       symbol: {},
-      name: label(name),
-      group: null,
+      declaration,
+      name: declaration.name,
+      group: declaration.namespace,
       rules: [],
       text: [],
       frozen: false,
     });
-  }
-  static group(name) {
-    return new PluginGroup(name);
   }
 
   get name() {
@@ -70,7 +52,7 @@ export class Plugin {
   }
 }
 export function makePlugin(state) {
-  const plugin = new Plugin(state.name);
+  const plugin = new Plugin(state.declaration);
   metadata.set(plugin, state);
   return plugin;
 }

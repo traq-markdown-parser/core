@@ -1,26 +1,11 @@
-import { common } from "./common.mjs";
-import { validateLink as defaultPolicy } from "./policy.mjs";
+import { handlers as presetHandlers } from "./preset.mjs";
 import { token, inlineToken, pair } from "./tokens.mjs";
+export { Plugin } from "./plugin.mjs";
+export { PresetBuilder } from "./preset.mjs";
 
 // This adapter preserves S-UI's presentation plugins. It never parses Markdown.
-export function createRenderer({
-  store,
-  validateLink = defaultPolicy,
-  overrides = {},
-  extensions = new Map(),
-} = {}) {
-  const handlers = new Map(common),
-    extensionHandlers = new Map(extensions);
-  for (const [kind, handler] of Object.entries(overrides)) {
-    if (handler !== null && typeof handler !== "function")
-      throw new TypeError("Expected render handler");
-    if (!handlers.has(kind)) throw new Error("Unknown common node: " + kind);
-    handlers.set(kind, handler);
-  }
-  for (const handler of extensionHandlers.values())
-    if (handler !== null && typeof handler !== "function")
-      throw new TypeError("Expected extension handler");
-  for (const [kind, handler] of extensionHandlers) handlers.set(kind, handler);
+export function renderer(preset) {
+  const handlers = presetHandlers(preset);
   function render(document, inline) {
     let bytes;
     const fallback = (node, block) => {
@@ -33,14 +18,11 @@ export function createRenderer({
         ? pair("paragraph", "p", [inlineToken(tokens)], { block: true })
         : tokens;
     };
-    function nodes(values = [], block = false, tight = false) {
+    function nodes(values = [], block = false) {
       const ctx = {
-        store,
-        validateLink,
-        tight,
         source: document.source,
         inline: (values) => nodes(values),
-        blocks: (values, tight = false) => nodes(values, true, tight),
+        blocks: (values) => nodes(values, true),
         fallback: (node) => fallback(node, block),
       };
       return values.flatMap((node) => {
@@ -58,13 +40,9 @@ export function createRenderer({
   });
 }
 
-export function installParser(renderer, parser, options = {}) {
-  const render = createRenderer({
-    validateLink: (value) => renderer.md.validateLink(value),
-    ...options,
-  });
-  renderer.md.parse = (source) => render.render(parser.parse(source));
-  renderer.md.parseInline = (source) =>
+export function installParser(target, parser, render) {
+  target.md.parse = (source) => render.render(parser.parse(source));
+  target.md.parseInline = (source) =>
     render.renderInline(parser.parseInline(source));
-  return renderer;
+  return target;
 }

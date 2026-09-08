@@ -48,6 +48,7 @@ TS / Go の組み込み文法 Plugin は読み取り専用です。独自 Plugin
 
 ```ts
 import { loadRuntime, Plugin } from '@traptitech/markdown-parser'
+import * as definitions from '@traptitech/markdown-definitions'
 import { names } from '@traptitech/markdown-parser/nodes'
 
 const runtime = await loadRuntime(wasmBytes)
@@ -65,8 +66,9 @@ for (const node of document.children) {
 parser.dispose()
 runtime.dispose()
 
-const generic = Plugin.group('custom')
-const math = generic.new('math')
+const generic = definitions.Plugin.group('custom')
+const declaration = generic.new('math')
+const math = new Plugin(declaration)
 ```
 
 通常の parse は生成済みのノード検証を使い、codec の指定を要求しません。
@@ -150,10 +152,33 @@ parser core と renderer core はこの一覧を参照しません。生成器�
 ## 描画と保存
 
 HTML 用の markdown-it アダプターは同じ AST を直接受け取ります。
-createRenderer の overrides は names.Link などの生成キー、extensions は追加 handler の Map を受け取ります。
-CommonMark と traP を振り分ける特殊な Extension ノードはありません。未知型や無効にした handler は原文表示に戻します。
+汎用 renderer は文法を自動登録しません。用途に合う preset を渡して生成します。
+
+```ts
+import * as html from '@traptitech/markdown-renderer'
+import * as traq from '@traptitech/markdown-renderer/traq'
+import * as commonmark from '@traptitech/markdown-renderer/common'
+
+const renderer = html.renderer(traq.v1.html({ store }))
+const tokens = renderer.render(document)
+
+const plugin = commonmark.html.plugin()
+plugin.replace(commonmark.nodes.Link, (node, context) => context.inline(node.children))
+const builder = new html.PresetBuilder().add(plugin)
+const customized = html.renderer(builder.build())
+// builder.remove(plugin) は登録した実装インスタンスを受け取ります。
+```
+
+独自実装は `new html.Plugin(declaration)` で共有宣言から作り、`on(kind, handler)` で追加します。
+`on` の重複、`replace` の未登録型、採用した同じ scope の名前の衝突は拒否します。
+追加時の実装を保持するため、後から Plugin を編集しても既存の builder / preset / renderer は変わりません。
+編集後の Plugin で編集前の登録を remove することはできません。
+リンク判定は CommonMark の設定、store は traQ の設定として handler に保持されます。
+既存 markdown-it への接続は `html.installParser(target, parser, renderer)` です。
+アプリ固有のリンク判定を引き継ぐ場合は、preset に `validateLink: value => target.md.validateLink(value)` を渡します。
+CommonMark と traP を振り分ける特殊な Extension ノードはありません。未知型は原文表示に戻します。登録済み handler を無効にする場合は、context.fallback を呼ぶ handler へ replace します。
 render / renderInline は Document と Document<true> の両方をそのまま受け取ります。
-独自 handler の入力は Node<true>。既知 payload を読む場合は isKnownNode と kind で確認します。
+独自 handler の入力は kind / span / data / children を持つ構造型で、data は unknown です。既知 payload を読む場合は isKnownNode と kind で確認します。
 HTML 構文を認識したことは実行許可を意味しません。既定ではエスケープします。
 
 Rust の通知・参照抽出は [traq-processing](../crates/trap/traq-processing/README.md) を参照してください。

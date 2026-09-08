@@ -28,6 +28,7 @@ await copyFile(
 for (const [source, destination] of [
   ["THIRD_PARTY_NOTICES.md", "packages/browser/THIRD_PARTY_NOTICES.md"],
   ["LICENSE", "packages/browser/LICENSE"],
+  ["LICENSE", "packages/definitions/LICENSE"],
   ["LICENSE", "packages/renderer/LICENSE"],
 ]) {
   await copyFile(path.join(root, source), path.join(root, destination));
