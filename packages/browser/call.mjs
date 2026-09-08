@@ -2,6 +2,7 @@ import {
   validateDocument,
   validateError,
   validateBuildError,
+  UnsupportedNodeError,
 } from "./validate.mjs";
 import { MarkdownParseError, GrammarBuildError } from "./errors.mjs";
 
@@ -25,7 +26,7 @@ export function createRunner(instance) {
       throw new Error("Invalid Wasm export: " + name);
   if (!(wasm.memory instanceof WebAssembly.Memory))
     throw new Error("Missing Wasm memory");
-  if (wasm.abi_version() !== 2 || wasm.ast_version() !== 3)
+  if (wasm.abi_version() !== 2 || wasm.ast_version() !== 4)
     throw new Error("Unsupported Wasm ABI or AST schema");
   const encoder = new TextEncoder(),
     decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
@@ -39,7 +40,7 @@ export function createRunner(instance) {
   const contract = read(wasm.contract_ptr(), wasm.contract_len(), 65536);
   if (
     contract.abiVersion !== 2 ||
-    contract.astVersion !== 3 ||
+    contract.astVersion !== 4 ||
     contract.limits?.inputBytes !== 65536 ||
     contract.limits?.outputBytes !== 1048576 ||
     contract.limits?.memoryBytes !== 33554432 ||
@@ -109,22 +110,19 @@ export function createRunner(instance) {
         !result ||
         !Number.isInteger(result.handle) ||
         result.handle <= 0 ||
-        typeof result.description !== "string" ||
-        !Array.isArray(result.extensions) ||
-        !result.extensions.every((n) => typeof n === "string") ||
-        new Set(result.extensions).size !== result.extensions.length
+        typeof result.description !== "string"
       ) {
         usable = false;
         throw new Error("Invalid grammar contract");
       }
       return result;
     },
-    parse(handle, source, mode, extensions, allowUnknown) {
+    parse(handle, source, mode, nodes, allowUnknown) {
       const result = invoke("parse", [handle, mode], source, "document");
       try {
-        return validateDocument(result, source, extensions, allowUnknown);
+        return validateDocument(result, source, nodes, allowUnknown);
       } catch (error) {
-        usable = false;
+        if (!(error instanceof UnsupportedNodeError)) usable = false;
         throw error;
       }
     },

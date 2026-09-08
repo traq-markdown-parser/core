@@ -10,13 +10,15 @@
 /scripts/bundle-integration.mjs
 /scripts/integration.mjs
 /tests/benchmark-browser.mjs
-/tests/hosts.mjs
-/tests/rendering.mjs
 /tests/sui-browser.mjs
 /tests/traq-api.mjs
 /go/cmd/corpus/
+
+# Retired local tools retained until deletion is approved.
+/tests/hosts.mjs
+/tests/rendering.mjs
 /go/core/stages_test.go
-/crates/markdown/tests/support/mod.rs
+/crates/markdown/
 
 # Dependencies and build outputs.
 **/target/

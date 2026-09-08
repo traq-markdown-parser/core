@@ -1,3 +1,4 @@
+import { names } from "@traptitech/markdown-parser/nodes";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
@@ -12,7 +13,7 @@ const parser = runtime.parser(runtime.presets.traq.v1);
 test("one override retains all other common handlers and does not mutate defaults", () => {
   const document = parser.parse("**bold** [link](https://example.com)");
   const custom = createRenderer({
-    overrides: { link: (node, ctx) => ctx.inline(node.children) },
+    overrides: { [names.Link]: (node, ctx) => ctx.inline(node.children) },
   });
   const ordinary = createRenderer();
   const types = (render) =>
@@ -30,7 +31,7 @@ test("one override retains all other common handlers and does not mutate default
 test("profile extension overrides preserve other defaults and can disable one handler", () => {
   const document = parser.parse(":stamp: ==marked==");
   const custom = createTraqRenderer({
-    extensions: new Map([["trap/stamp@1", null]]),
+    extensions: new Map([[names.Stamp, null]]),
   });
   const children = custom.render(document)[1].children;
   assert(children.some((n) => n.type === "text" && n.content === ":stamp:"));
@@ -51,12 +52,12 @@ test("standalone defaults are usable without application state and escape unknow
     source: "x",
     children: [
       {
-        kind: "link",
+        kind: names.Link,
         span: { start: 0, end: 1 },
-        destination: "javascript:alert(1)",
+        data: { destination: "javascript:alert(1)",
         title: null,
-        form: "explicit",
-        children: [{ kind: "text", span: { start: 0, end: 1 }, value: "x" }],
+        form: "explicit" },
+        children: [{ kind: names.Text, span: { start: 0, end: 1 }, data: {value: "x"} }],
       },
     ],
   };

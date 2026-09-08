@@ -5,6 +5,7 @@ type groupDefinition struct {
 	Name   *string `json:"name"`
 }
 type pluginDefinition struct {
+	Text  []int   `json:"text"`
 	Group *int    `json:"group"`
 	Name  *string `json:"name"`
 	Rules []int   `json:"rules"`
@@ -15,12 +16,7 @@ type composition struct {
 	Order   []int              `json:"order"`
 }
 
-func optionalName(name string, named bool) *string {
-	if !named {
-		return nil
-	}
-	return &name
-}
+func displayNamePointer(name string) *string { return &name }
 func (d definition) composition() composition {
 	result := composition{Groups: []groupDefinition{}, Plugins: []pluginDefinition{}, Order: append([]int{}, d.order...)}
 	indices := map[*symbol]int{}
@@ -34,7 +30,7 @@ func (d definition) composition() composition {
 		}
 		parent := visit(group.parent)
 		index := len(result.Groups)
-		result.Groups = append(result.Groups, groupDefinition{parent, optionalName(group.name, group.named)})
+		result.Groups = append(result.Groups, groupDefinition{parent, displayNamePointer(group.name)})
 		indices[group.identity] = index
 		return &index
 	}
@@ -43,7 +39,7 @@ func (d definition) composition() composition {
 		for _, rule := range plugin.rules {
 			rules = append(rules, rule.index)
 		}
-		result.Plugins = append(result.Plugins, pluginDefinition{visit(plugin.group), optionalName(plugin.name, plugin.named), rules})
+		result.Plugins = append(result.Plugins, pluginDefinition{Group: visit(plugin.group), Name: displayNamePointer(plugin.name), Rules: rules, Text: append([]int{}, plugin.text...)})
 	}
 	return result
 }

@@ -32,6 +32,9 @@ func (b *GrammarBuilder) Add(plugin *Plugin) error {
 			return &BuildError{Code: "duplicate", Element: plugin.name}
 		}
 	}
+	if plugin.providerRuntime != nil && plugin.providerRuntime != b.runtime {
+		return fmt.Errorf("text provider belongs to another runtime")
+	}
 	order := slices.Clone(b.definition.order)
 	for _, rule := range plugin.rules {
 		if rule.runtime != b.runtime {
@@ -105,7 +108,7 @@ func (b *GrammarBuilder) Build(ctx context.Context) (*Grammar, error) {
 		if err != nil {
 			return err
 		}
-		grammar = b.runtime.newGrammar(snapshot, recipe, result.Description, result.Extensions)
+		grammar = b.runtime.newGrammar(snapshot, recipe, result.Description)
 		grammar.state.initialized.Store(true)
 		w.grammars[grammar.state] = result.Handle
 		return nil

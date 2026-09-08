@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package generic
 
 import (
@@ -7,7 +7,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const CellName = "generic/table_cell@1"
+const CellName = "markdown_generic_contracts::table::CellData"
 
 type Cell struct {
 	Alignment *string `json:"alignment"`

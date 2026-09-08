@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package generic
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const RowName = "generic/table_row@1"
+const RowName = "markdown_generic_contracts::table::RowData"
 
 type Row struct {
 	Header bool `json:"header"`

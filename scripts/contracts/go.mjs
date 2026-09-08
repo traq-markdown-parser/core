@@ -6,6 +6,7 @@ const fieldName = (name) =>
 function goType(s) {
   if (s.kind === "string" || s.kind === "enum") return "string";
   if (s.kind === "boolean") return "bool";
+  if (s.kind === "integer") return s.format;
   if (s.kind === "nullable") return "*" + goType(s.inner);
   throw new Error("Unsupported Go field: " + s.kind);
 }
@@ -41,7 +42,7 @@ export function goPayload(group, wireName, schema) {
     })
     .join("\n");
   return (
-    "// Code generated from Rust extension payload types. DO NOT EDIT.\npackage " +
+    "// Code generated from Rust node payload types. DO NOT EDIT.\npackage " +
     group +
     "\n" +
     'import ("encoding/json"; ' +
@@ -85,7 +86,7 @@ export function goPayload(group, wireName, schema) {
 }
 export function goRegistry(group, entries) {
   return (
-    "// Code generated from Rust extension payload types. DO NOT EDIT.\npackage " +
+    "// Code generated from Rust node payload types. DO NOT EDIT.\npackage " +
     group +
     "\n" +
     'import "github.com/traPtitech/traq-markdown-parser/go/ast"\n' +

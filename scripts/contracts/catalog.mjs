@@ -14,8 +14,8 @@ function tsTree(tree, leaf) {
     " }"
   );
 }
-function goTree(tree, leaf) {
-  if (typeof tree === "number") return "*" + leaf;
+export function goTree(tree, leaf) {
+  if (typeof tree === "number") return "*" + (typeof leaf === "function" ? leaf(tree) : leaf);
   return (
     "struct {\n" +
     Object.entries(tree)
@@ -24,8 +24,9 @@ function goTree(tree, leaf) {
     "\n}"
   );
 }
-function assignments(tree, root, leaf) {
-  if (typeof tree === "number") return root + " = " + leaf + "[" + tree + "]\n";
+export function assignments(tree, root, leaf) {
+  if (typeof tree === "number") return root + " = " +
+    (typeof leaf === "function" ? leaf(tree) : leaf + "[" + tree + "]") + "\n";
   return Object.entries(tree)
     .map(([name, child]) => assignments(child, root + "." + goName(name), leaf))
     .join("");

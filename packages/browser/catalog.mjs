@@ -5,9 +5,8 @@ export function loadCatalog(runtime, catalog) {
   for (const definition of catalog.groups) {
     let group =
       definition.parent === null
-        ? new PluginGroup()
-        : groups[definition.parent].group();
-    if (definition.name !== null) group = group.named(definition.name);
+        ? new PluginGroup(definition.name)
+        : groups[definition.parent].group(definition.name);
     groups.push(group);
   }
   const rules = catalog.rules.map((definition, index) =>
@@ -15,13 +14,14 @@ export function loadCatalog(runtime, catalog) {
   );
   const plugins = catalog.plugins.map((definition) => {
     const plugin =
-      definition.group === null ? new Plugin() : groups[definition.group].new();
+      definition.group === null ? new Plugin(definition.name) : groups[definition.group].new(definition.name);
     const state = data(plugin, "plugin");
     return makePlugin({
       ...state,
       name: definition.name,
       frozen: true,
       rules: definition.rules.map((index) => rules[index]),
+      text: definition.text.map((index) => ({ runtime, index })),
     });
   });
   function tree(value, leaf) {

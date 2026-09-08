@@ -43,7 +43,7 @@ func (p *Parser) parse(ctx context.Context, source string, mode uint32) (*Result
 		if err != nil {
 			return err
 		}
-		result, err = parseInstance(ctx, w.module, source, handle, mode, p.runtime.extensions)
+		result, err = parseInstance(ctx, w.module, source, handle, mode, p.runtime.nodes)
 		return err
 	})
 	return result, err

@@ -45,7 +45,7 @@ func Decode(raw json.RawMessage, registry Registry) (*Document, error) {
 			if count > 16384 {
 				return nil, fmt.Errorf("node limit")
 			}
-			node, children, err := readNode(value)
+			node, payload, children, err := readNode(value)
 			if err != nil {
 				return nil, err
 			}
@@ -56,14 +56,12 @@ func Decode(raw json.RawMessage, registry Registry) (*Document, error) {
 			if span.Start > span.End || span.Start < parent.Start || span.End > parent.End || !boundary(span.Start) || !boundary(span.End) {
 				return nil, fmt.Errorf("invalid source span")
 			}
-			if node.Kind == "extension" {
-				decode := registry[node.Name]
-				if decode == nil {
-					return nil, fmt.Errorf("missing extension decoder %s", node.Name)
-				}
-				if node.Payload, err = decode(node.Data); err != nil {
-					return nil, fmt.Errorf("%s: %w", node.Name, err)
-				}
+			decode := registry[node.Kind]
+			if decode == nil {
+				return nil, fmt.Errorf("missing node decoder %s", node.Kind)
+			}
+			if node.Payload, err = decode(payload); err != nil {
+				return nil, fmt.Errorf("%s: %w", node.Kind, err)
 			}
 			if node.Children, err = visit(children, span, depth+1); err != nil {
 				return nil, err

@@ -6,5 +6,4 @@ license.workspace = true
 publish = false
 
 [dependencies]
-traq-markdown = { path = "../../crates/markdown" }
-serde_json = "1"
+markdown-traq = { path = "../../crates/trap/traq" }

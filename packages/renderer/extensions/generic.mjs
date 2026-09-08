@@ -1,4 +1,4 @@
-import { names } from "@traptitech/markdown-parser/extensions";
+import { names } from "@traptitech/markdown-parser/nodes";
 import { token, pair, inlineToken } from "../tokens.mjs";
 
 function math(node, block) {

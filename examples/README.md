@@ -10,11 +10,16 @@
 | TypeScript | [main.ts](typescript/main.ts) | `npm run example:ts` |
 
 まとめて実行する場合は `npm run examples`、TypeScript の型検査は `npm run typecheck` です。
-各例は AST を標準出力へ出します。TypeScript は markdown-it による HTML 化も示します。
+各例は AST を標準出力へ出します（Rust は型付きの Debug 表示）。TypeScript は markdown-it による HTML 化も示します。
 
 Rust は workspace、Go は examples/go/go.mod の相対 replace、
 TypeScript は npm workspace でこのリポジトリの SDK を参照します。
 パッケージを先にレジストリへ公開する必要はありません。
+
+新しい型付き AST の通知・参照抽出の例は
+[notification.rs](../crates/trap/traq-processing/examples/notification.rs) です。
+`cargo run -p markdown-traq-processing --example notification` で実行できます。
+文法・通知・抽出をそれぞれの preset から構成し、同じ AST を共有します。
 
 ## 利用時の要点
 

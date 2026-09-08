@@ -18,9 +18,9 @@
     },
     "./parser.wasm": "./parser.wasm",
     "./contract.json": "./contract.json",
-    "./extensions": {
-      "types": "./generated/extensions.d.mts",
-      "import": "./generated/extensions.mjs"
+    "./nodes": {
+      "types": "./generated/nodes.d.mts",
+      "import": "./generated/nodes.mjs"
     }
   },
   "description": "Composable Markdown parser shared by Rust, Go and JavaScript through WebAssembly.",

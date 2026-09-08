@@ -10,11 +10,11 @@ func TestGrammarCapacityIsSharedAcrossWorkers(t *testing.T) {
 	ctx := context.Background()
 	var held []*Grammar
 	for range 256 {
-		g, err := r.Builder().Build(ctx)
+		g, err := r.Presets.CommonMark.ToBuilder().Build(ctx)
 		requireOK(t, err)
 		held = append(held, g)
 	}
-	if _, err := r.Builder().Build(ctx); err == nil {
+	if _, err := r.Presets.CommonMark.ToBuilder().Build(ctx); err == nil {
 		t.Fatal("runtime exceeded worker capacity")
 	}
 	if _, err := r.Parser(ctx, r.Presets.TraQ.V1); err == nil {
@@ -46,15 +46,15 @@ func TestGrammarCapacityIsSharedAcrossWorkers(t *testing.T) {
 	}
 	// A build rejected by core validation must return its reserved slot.
 	b := r.Builder()
-	requireOK(t, b.Add(NewPlugin().Named("same")))
-	requireOK(t, b.Add(NewPlugin().Named("same")))
+	requireOK(t, b.Add(NewPlugin("same")))
+	requireOK(t, b.Add(NewPlugin("same")))
 	if _, err := b.Build(ctx); err == nil {
 		t.Fatal("duplicate accepted")
 	}
 	if r.grammarCount.Load() != 0 {
 		t.Fatal("failed build leaked capacity")
 	}
-	g, err := r.Builder().Build(ctx)
+	g, err := r.Presets.CommonMark.ToBuilder().Build(ctx)
 	requireOK(t, err)
 	g.Close()
 }

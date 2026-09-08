@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package generic
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const MarkName = "generic/mark@1"
+const MarkName = "markdown_generic_contracts::mark::MarkData"
 
 type Mark struct {
 }

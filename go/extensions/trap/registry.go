@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package trap
 
 import "github.com/traPtitech/traq-markdown-parser/go/ast"

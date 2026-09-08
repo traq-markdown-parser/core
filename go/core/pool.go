@@ -22,7 +22,7 @@ type Runtime struct {
 	closed       chan struct{}
 	closeOnce    sync.Once
 	lifecycle    sync.Mutex
-	extensions   ast.Registry
+	nodes        ast.Registry
 	grammarCount atomic.Int64
 }
 
@@ -33,7 +33,7 @@ func New(ctx context.Context, wasm []byte) (*Runtime, error) {
 		rt.Close(ctx)
 		return nil, err
 	}
-	r := &Runtime{runtime: rt, module: module, pool: make(chan *worker, 4), closed: make(chan struct{}), extensions: binding.Registry()}
+	r := &Runtime{runtime: rt, module: module, pool: make(chan *worker, 4), closed: make(chan struct{}), nodes: binding.Registry()}
 	for range cap(r.pool) {
 		w, err := r.instantiate(ctx)
 		if err != nil {

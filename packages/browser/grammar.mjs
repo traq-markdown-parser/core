@@ -26,18 +26,15 @@ export function makeParser(runtime, grammar, options) {
   const state = owned(grammar, "grammar", runtime);
   if (state.disposed) throw new Error("Grammar is disposed");
   const record = state.record;
-  const allowUnknownExtensions = options?.allowUnknownExtensions ?? false;
-  if (typeof allowUnknownExtensions !== "boolean")
-    throw new TypeError("Expected boolean allowUnknownExtensions");
-  for (const name of record.extensions)
-    if (!runtime.extensions.has(name) && !allowUnknownExtensions)
-      throw new Error("Missing extension decoder: " + name);
+  const allowUnknownNodes = options?.allowUnknownNodes ?? false;
+  if (typeof allowUnknownNodes !== "boolean")
+    throw new TypeError("Expected boolean allowUnknownNodes");
   runtime.prepare(record);
   record.references++;
   let disposed = false;
   const parse = (source, mode) => {
     if (disposed) throw new Error("Parser is disposed");
-    return runtime.parse(record, source, mode, allowUnknownExtensions);
+    return runtime.parse(record, source, mode, allowUnknownNodes);
   };
   return Object.freeze({
     parse: (source) => parse(source, 0),

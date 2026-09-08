@@ -1,2 +1,0 @@
-export const names: Readonly<{Mark:"generic/mark@1";BlockMath:"generic/math_block@1";InlineMath:"generic/math_inline@1";Strikethrough:"generic/strikethrough@1";Table:"generic/table@1";Cell:"generic/table_cell@1";Row:"generic/table_row@1";BlankLine:"trap/blank_line@1";Reference:"trap/reference@1";Spoiler:"trap/spoiler@1";Stamp:"trap/stamp@1"}>
-export const extensions:ReadonlyMap<string,(data:unknown)=>boolean>

@@ -2,8 +2,11 @@
 mod buffers;
 mod contract;
 mod grammar;
+#[macro_use]
+mod node_types;
+mod nodes;
 use buffers::IO;
-use traq_markdown::{ParseError, Parser};
+use markdown_traq::{ParseError, Parser};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn abi_version() -> u32 {
@@ -11,7 +14,7 @@ pub extern "C" fn abi_version() -> u32 {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn ast_version() -> u32 {
-    3
+    4
 }
 
 /// mode: 0=document, 1=inline. Handles belong to this Wasm instance.
@@ -27,7 +30,7 @@ pub extern "C" fn parse(handle: u32, mode: u32) -> u32 {
                 _ => Err(ParseError::InternalError),
             }
         });
-        io.reply("document", &result);
+        io.reply_document(&result);
         io.output.len() as u32
     })
 }

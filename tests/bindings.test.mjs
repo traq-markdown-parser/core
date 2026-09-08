@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { shape } from "../scripts/contracts/schema.mjs";
 import { javascript } from "../scripts/contracts/javascript.mjs";
 import { goPayload } from "../scripts/contracts/go.mjs";
-import { extensions } from "../packages/browser/generated/extensions.mjs";
+import { nodes, names } from "../packages/browser/generated/nodes.mjs";
 const manifest = JSON.parse(
   await readFile(
     new URL("../packages/browser/generated/contracts.json", import.meta.url),
@@ -13,15 +13,16 @@ const manifest = JSON.parse(
 
 function example(s) {
   if (s.kind === "string") return "value";
+  if (s.kind === "integer") return s.min;
   if (s.kind === "boolean") return false;
   if (s.kind === "enum") return s.values[0];
   if (s.kind === "nullable") return null;
   return Object.fromEntries(s.fields.map((f) => [f.name, example(f.shape)]));
 }
 test("generated host codecs enforce every exported payload shape", () => {
-  for (const [name, schema] of Object.entries(manifest.extensions)) {
+  for (const [name, schema] of Object.entries(manifest.nodes).map(([key, value]) => [key, value.schema])) {
     const valid = example(shape(schema)),
-      check = extensions.get(name);
+      check = nodes.get(name);
     assert(check(valid), name);
     assert(!check({ ...valid, unexpected: true }), name);
     assert(!check(null), name);
@@ -33,13 +34,13 @@ test("generated host codecs enforce every exported payload shape", () => {
     }
   }
   assert(
-    !extensions.get("trap/reference@1")({
+    !nodes.get(names.Reference)({
       type: "other",
       id: "u",
       label: "@u",
     }),
   );
-  assert(!extensions.get("generic/table_cell@1")({ alignment: "other" }));
+  assert(!nodes.get(names.Cell)({ alignment: "other" }));
 });
 test("unsupported schema constraints fail generation instead of weakening validation", () => {
   const schema = {

@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package generic
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const BlockMathName = "generic/math_block@1"
+const BlockMathName = "markdown_generic_contracts::math::BlockMathData"
 
 type BlockMath struct {
 	Tex string `json:"tex"`

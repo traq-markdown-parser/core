@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package trap
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const SpoilerName = "trap/spoiler@1"
+const SpoilerName = "markdown_trap_contracts::spoiler::SpoilerData"
 
 type Spoiler struct {
 }

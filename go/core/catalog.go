@@ -11,15 +11,13 @@ type catalog struct {
 	Groups  []groupDefinition  `json:"groups"`
 	Plugins []pluginDefinition `json:"plugins"`
 	Rules   []struct {
-		Name       *string  `json:"name"`
-		Phase      string   `json:"phase"`
-		Extensions []string `json:"extensions"`
+		Name  *string `json:"name"`
+		Phase string  `json:"phase"`
 	} `json:"rules"`
 	Presets []struct {
-		Description string   `json:"description"`
-		Extensions  []string `json:"extensions"`
-		Plugins     []int    `json:"plugins"`
-		Order       []int    `json:"order"`
+		Description string `json:"description"`
+		Plugins     []int  `json:"plugins"`
+		Order       []int  `json:"order"`
 	} `json:"presets"`
 }
 
@@ -37,10 +35,7 @@ func (r *Runtime) loadCatalog(ctx context.Context) error {
 	}
 	groups := make([]*PluginGroup, len(spec.Groups))
 	for index, item := range spec.Groups {
-		group := NewPluginGroup()
-		if item.Name != nil {
-			group = group.Named(*item.Name)
-		}
+		group := NewPluginGroup(displayName(item.Name))
 		if item.Parent != nil {
 			group.parent = groups[*item.Parent]
 		}
@@ -48,14 +43,13 @@ func (r *Runtime) loadCatalog(ctx context.Context) error {
 	}
 	rules := make([]*Rule, len(spec.Rules))
 	for index, item := range spec.Rules {
-		rules[index] = &Rule{runtime: r, index: index, name: displayName(item.Name), phase: item.Phase, extensions: item.Extensions}
+		rules[index] = &Rule{runtime: r, index: index, name: displayName(item.Name), phase: item.Phase}
 	}
 	plugins := make([]*Plugin, len(spec.Plugins))
 	for index, item := range spec.Plugins {
-		plugin := NewPlugin()
-		if item.Name != nil {
-			plugin = plugin.Named(*item.Name)
-		}
+		plugin := NewPlugin(displayName(item.Name))
+		plugin.text = item.Text
+		plugin.providerRuntime = r
 		if item.Group != nil {
 			plugin.group = groups[*item.Group]
 		}
@@ -82,7 +76,7 @@ func (r *Runtime) loadCatalog(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		presets[index] = r.newGrammar(snapshot, recipe, item.Description, item.Extensions)
+		presets[index] = r.newGrammar(snapshot, recipe, item.Description)
 	}
 	r.exportCatalog(plugins, presets)
 	return nil

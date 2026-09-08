@@ -5,23 +5,28 @@ import { javascript } from "./contracts/javascript.mjs";
 import { goPayload, goRegistry } from "./contracts/go.mjs";
 import { catalogFiles } from "./contracts/catalog.mjs";
 import { typeName } from "./contracts/schema.mjs";
+import { treeFiles } from "./contracts/tree.mjs";
 const manifest = JSON.parse(
   await readFile(
     new URL("../packages/browser/generated/contracts.json", import.meta.url),
   ),
 );
-const entries = Object.entries(manifest.extensions);
+const entries = Object.entries(manifest.nodes).map(([key, entry]) => [key, entry.schema]);
 const files = new Map();
-files.set("packages/browser/generated/extensions.mjs", javascript(entries));
+for (const [p, s] of treeFiles(entries)) files.set(p, s);
+files.set("packages/browser/generated/nodes.mjs", javascript(entries));
 files.set(
-  "packages/browser/generated/extensions.d.mts",
-  "export const names: Readonly<{" +
+  "packages/browser/generated/nodes.d.mts",
+  "import type { Node } from './Node.js';\n" +
+    "import type { NodeKind } from './NodeKind.js';\n" +
+    "export const names: Readonly<{" +
     entries
       .map(([name, s]) => typeName(s) + ":" + JSON.stringify(name))
       .join(";") +
-    "}>\nexport const extensions:ReadonlyMap<string,(data:unknown)=>boolean>\n",
+    "}>\nexport const nodes:ReadonlyMap<string,(data:unknown)=>boolean>\n" +
+    "export function isKnownNode(node: Node<true>): node is Node<true> & NodeKind;\n",
 );
-const groups = Map.groupBy(entries, ([name]) => name.split("/")[0]);
+const groups = Map.groupBy(entries, ([name]) => manifest.nodes[name].group);
 for (const [group, entries] of groups) {
   for (const [name, schema] of entries)
     files.set(

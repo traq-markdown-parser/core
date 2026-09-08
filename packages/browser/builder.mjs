@@ -17,6 +17,8 @@ export class GrammarBuilder {
         code: "duplicate",
         element: state.name ?? "<anonymous plugin>",
       });
+    for (const provider of state.text)
+      if (provider.runtime !== this.#runtime) throw new TypeError("Text provider belongs to a different Runtime");
     const used = new Set(this.#order);
     for (const rule of state.rules) {
       const { index } = owned(rule, "rule", this.#runtime);
@@ -88,6 +90,7 @@ export function composition(snapshot) {
     group: visit(p.group),
     name: p.name,
     rules: p.rules.map((rule) => data(rule, "rule").index),
+    text: p.text.map((provider) => provider.index),
   }));
   return { groups, plugins, order: snapshot.order };
 }

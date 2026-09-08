@@ -1,6 +1,8 @@
 import { shape, typeName, quoted as q } from "./schema.mjs";
 function validator(s) {
   if (s.kind === "string" || s.kind === "boolean") return s.kind;
+  if (s.kind === "integer")
+    return `(value) => Number.isInteger(value) && value >= ${s.min} && value <= ${s.max}`;
   if (s.kind === "enum") return "oneOf(" + s.values.map(q).join(",") + ")";
   if (s.kind === "nullable") return "nullable(" + validator(s.inner) + ")";
   if (s.kind === "object") {
@@ -24,7 +26,7 @@ export function javascript(entries) {
     used.add(name);
   }
   return (
-    "// Generated from Rust extension payload types. Do not edit.\n" +
+    "// Generated from Rust node payload types. Do not edit.\n" +
     "import {fields,string,boolean,nullable,oneOf} from '../fields.mjs'\n" +
     "export const names = Object.freeze(" +
     q(
@@ -33,13 +35,18 @@ export function javascript(entries) {
       ),
     ) +
     ")\n" +
-    "export const extensions = new Map([\n" +
+    "const validators = new Map([\n" +
     entries
       .map(
         ([name, schema]) =>
           "  [" + q(name) + "," + validator(shape(schema)) + "],",
       )
       .join("\n") +
-    "\n])\n"
+    "\n])\n" +
+    "export const nodes = new Map(validators)\n" +
+    "// Check this payload only; children can still contain unknown nodes.\n" +
+    "export function isKnownNode(node) {\n" +
+    "  return validators.get(node.kind)?.(node.data) ?? false\n" +
+    "}\n"
   );
 }

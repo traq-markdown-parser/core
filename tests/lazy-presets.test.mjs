@@ -63,7 +63,7 @@ test("failed lazy initialization can retry after capacity is released", async ()
   const { runtime: r, count } = await observedRuntime();
   try {
     const held = Array.from({ length: r.contract.limits.grammars }, () =>
-      r.builder().build(),
+      r.builder().add(r.plugins.commonmark.core).build(),
     );
     assert.throws(() => r.parser(r.presets.traq.v1), GrammarBuildError);
     assert.equal(count(), held.length);
@@ -80,18 +80,19 @@ test("failed lazy initialization can retry after capacity is released", async ()
   }
 });
 
-test("decoder and ownership rejection happen before preset compilation", async () => {
-  const { runtime: r, count } = await observedRuntime({ extensions: [] });
+test("ownership is checked at construction and missing node codecs at parse", async () => {
+  const { runtime: r, count } = await observedRuntime({ nodes: [] });
   const { runtime: foreign, count: foreignCount } = await observedRuntime();
   try {
-    assert.throws(
-      () => r.parser(r.presets.traq.v1),
-      /Missing extension decoder/,
-    );
+
     assert.throws(() => r.parser(foreign.presets.traq.v1), /runtime/i);
     assert.equal(count(), 0);
     assert.equal(foreignCount(), 0);
-    const p = r.parser(r.presets.traq.v1, { allowUnknownExtensions: true });
+    const strict = r.parser(r.presets.traq.v1);
+    assert.throws(() => strict.parse("text"), /Unsupported.*node/);
+    strict.dispose();
+    const p = r.parser(r.presets.traq.v1, { allowUnknownNodes: true });
+    assert.equal(p.parse("text").source, "text");
     assert.equal(count(), 1);
     p.dispose();
   } finally {

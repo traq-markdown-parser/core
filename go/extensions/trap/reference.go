@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package trap
 
 import (
@@ -7,7 +7,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const ReferenceName = "trap/reference@1"
+const ReferenceName = "markdown_trap_contracts::reference::ReferenceData"
 
 type Reference struct {
 	ID    string `json:"id"`

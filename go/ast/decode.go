@@ -42,12 +42,3 @@ func DecodeFields(raw json.RawMessage, out any, required, optional, nullable []s
 	}
 	return nil
 }
-
-var nodeFields = map[string][]string{
-	"paragraph": {}, "blockquote": {}, "emphasis": {}, "strong": {},
-	"heading": {"level"}, "list": {"ordered", "start", "tight"}, "list_item": {"marker"},
-	"code_block": {"fenced", "info", "literal"}, "thematic_break": {"marker"},
-	"text": {"value"}, "softbreak": {}, "hardbreak": {}, "inline_code": {"literal"},
-	"link": {"destination", "title", "form"}, "image": {"destination", "title", "label_source"},
-	"html_inline": {"literal"}, "html_block": {"literal"}, "extension": {"name", "data"},
-}

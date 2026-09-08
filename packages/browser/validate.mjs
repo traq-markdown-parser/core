@@ -1,70 +1,28 @@
 import {
   fields,
   string,
-  boolean,
   uint,
-  nullable,
-  oneOf,
   object,
 } from "./fields.mjs";
 
-const common = new Map([
-  ["paragraph", {}],
-  ["blockquote", {}],
-  ["emphasis", {}],
-  ["strong", {}],
-  ["heading", { level: (value) => uint(value) && value >= 1 && value <= 6 }],
-  ["list", { ordered: boolean, start: uint, tight: boolean }],
-  ["list_item", { marker: string }],
-  ["code_block", { fenced: boolean, info: string, literal: string }],
-  ["thematic_break", { marker: string }],
-  ["text", { value: string }],
-  ["softbreak", {}],
-  ["hardbreak", {}],
-  ["inline_code", { literal: string }],
-  [
-    "link",
-    {
-      destination: string,
-      title: nullable(string),
-      form: oneOf("explicit", "autolink", "linkify"),
-    },
-  ],
-  [
-    "image",
-    { destination: string, title: nullable(string), label_source: string },
-  ],
-  ["html_inline", { literal: string }],
-  ["html_block", { literal: string }],
-  ["extension", { name: string, data: object }],
-]);
-const containers = new Set([
-  "paragraph",
-  "blockquote",
-  "heading",
-  "list",
-  "list_item",
-  "emphasis",
-  "strong",
-  "link",
-  "image",
-  "extension",
-]);
+// Missing host support is a configuration error, not corrupt Wasm output.
+export class UnsupportedNodeError extends Error {}
 
 export function validateDocument(
   document,
   source,
-  extensions,
+  nodes,
   allowUnknown = false,
 ) {
   if (
     !fields(document, {
-      source: (value) => value === source,
+      source: (value) => string(value) && value === source,
       children: Array.isArray,
     })
   )
     throw new Error("Invalid document contract");
   const bytes = new TextEncoder().encode(source);
+  if (bytes.length > 65536) throw new Error("Source byte limit");
   const boundary = (offset) =>
     uint(offset) &&
     offset <= bytes.length &&
@@ -73,17 +31,15 @@ export function validateDocument(
   let count = 0;
   while (pending.length) {
     const [node, start, end, depth] = pending.pop();
-    const shape = common.get(node?.kind);
     if (
       ++count > 16384 ||
       depth > 64 ||
-      !shape ||
       !fields(
         node,
         {
-          kind: string,
+          kind: (value) => string(value) && value.length > 0,
           span: (span) => fields(span, { start: boundary, end: boundary }),
-          ...shape,
+          data: object,
         },
         { children: Array.isArray },
       )
@@ -95,13 +51,11 @@ export function validateDocument(
       node.span.start > node.span.end
     )
       throw new Error("Invalid AST span");
-    if (node.children?.length && !containers.has(node.kind))
-      throw new Error("Unexpected AST children");
-    if (node.kind === "extension") {
-      const decode = extensions.get(node.name);
-      if (decode ? !decode(node.data) : !allowUnknown)
-        throw new Error(`Unsupported or invalid extension: ${node.name}`);
-    }
+    const validate = nodes.get(node.kind);
+    if (!validate && !allowUnknown)
+      throw new UnsupportedNodeError(`Unsupported node: ${node.kind}`);
+    if (validate && !validate(node.data))
+      throw new Error(`Invalid node: ${node.kind}`);
     for (const child of node.children ?? [])
       pending.push([child, node.span.start, node.span.end, depth + 1]);
   }

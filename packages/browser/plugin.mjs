@@ -1,49 +1,40 @@
 import { metadata, data, label } from "./identity.mjs";
 
 export class PluginGroup {
-  constructor(parent = null) {
-    metadata.set(this, { kind: "group", symbol: {}, parent, name: null });
+  constructor(name, parent = null) {
+    metadata.set(this, { kind: "group", symbol: {}, parent, name: label(name) });
   }
-  named(name) {
-    const group = new PluginGroup();
-    metadata.set(group, { ...data(this, "group"), name: label(name) });
-    return group;
-  }
+
   get name() {
     return data(this, "group").name;
   }
   get parent() {
     return data(this, "group").parent;
   }
-  group() {
-    return new PluginGroup(this);
+  group(name) {
+    return new PluginGroup(name, this);
   }
-  new() {
-    return makePlugin({ ...data(new Plugin(), "plugin"), group: this });
+  new(name) {
+    return makePlugin({ ...data(new Plugin(name), "plugin"), group: this });
   }
 }
 
 export class Plugin {
-  constructor() {
+  constructor(name) {
     metadata.set(this, {
       kind: "plugin",
       symbol: {},
-      name: null,
+      name: label(name),
       group: null,
       rules: [],
+      text: [],
       frozen: false,
     });
   }
-  static group() {
-    return new PluginGroup();
+  static group(name) {
+    return new PluginGroup(name);
   }
-  named(name) {
-    return makePlugin({
-      ...data(this, "plugin"),
-      name: label(name),
-      frozen: false,
-    });
-  }
+
   get name() {
     return data(this, "plugin").name;
   }
@@ -79,7 +70,7 @@ export class Plugin {
   }
 }
 export function makePlugin(state) {
-  const plugin = new Plugin();
+  const plugin = new Plugin(state.name);
   metadata.set(plugin, state);
   return plugin;
 }

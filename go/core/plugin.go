@@ -2,40 +2,39 @@ package core
 
 import "slices"
 
-// Names are optional diagnostics. Symbols, rather than names, identify definitions.
+// Names are diagnostics. Symbols, rather than names, identify definitions.
 type symbol struct{ reserved byte }
 type PluginGroup struct {
-	named    bool
 	identity *symbol
 	parent   *PluginGroup
 	name     string
 }
 
-func NewPluginGroup() *PluginGroup { return &PluginGroup{identity: new(symbol)} }
-func (g *PluginGroup) Named(name string) *PluginGroup {
-	copy := *g
-	copy.name = name
-	copy.named = true
-	return &copy
-}
+func NewPluginGroup(name string) *PluginGroup { return &PluginGroup{identity: new(symbol), name: name} }
+
 func (g *PluginGroup) Name() string         { return g.name }
 func (g *PluginGroup) Parent() *PluginGroup { return g.parent }
-func (g *PluginGroup) Group() *PluginGroup  { child := NewPluginGroup(); child.parent = g; return child }
-func (g *PluginGroup) New() *Plugin         { p := NewPlugin(); p.group = g; return p }
+func (g *PluginGroup) Group(name string) *PluginGroup {
+	child := NewPluginGroup(name)
+	child.parent = g
+	return child
+}
+func (g *PluginGroup) New(name string) *Plugin { p := NewPlugin(name); p.group = g; return p }
 
 type Rule struct {
-	runtime    *Runtime
-	index      int
-	name       string
-	phase      string
-	extensions []string
+	runtime *Runtime
+	index   int
+	name    string
+	phase   string
 }
 
 func (r *Rule) Name() string  { return r.name }
 func (r *Rule) Phase() string { return r.phase }
 
 type Plugin struct {
-	named    bool
+	text            []int
+	providerRuntime *Runtime
+
 	identity *symbol
 	name     string
 	group    *PluginGroup
@@ -43,14 +42,8 @@ type Plugin struct {
 	frozen   bool
 }
 
-func NewPlugin() *Plugin { return &Plugin{identity: new(symbol)} }
-func (p *Plugin) Named(name string) *Plugin {
-	copy := *p
-	copy.name = name
-	copy.named = true
-	copy.frozen = false
-	return &copy
-}
+func NewPlugin(name string) *Plugin { return &Plugin{identity: new(symbol), name: name} }
+
 func (p *Plugin) Name() string            { return p.name }
 func (p *Plugin) Namespace() *PluginGroup { return p.group }
 func (p *Plugin) Add(rule *Rule) error {

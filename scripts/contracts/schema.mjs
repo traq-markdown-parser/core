@@ -45,10 +45,18 @@ export function shape(schema, root = schema, references = new Set()) {
     keys(schema, ["type"]);
     return { kind: schema.type };
   }
+  if (schema.type === "integer") {
+    keys(schema, ["type", "format", "minimum", "maximum"]);
+    const ranges = { uint8: [0, 255], uint32: [0, 0xffffffff] };
+    const range = ranges[schema.format];
+    if (!range || schema.minimum !== range[0] || (schema.maximum ?? range[1]) !== range[1])
+      throw new Error("Unsupported integer representation or constraints");
+    return { kind: "integer", format: schema.format, min: range[0], max: range[1] };
+  }
   if (schema.type === "object") {
     keys(schema, ["type", "properties", "required", "additionalProperties"]);
     if (schema.additionalProperties !== false)
-      throw new Error("Extension objects must reject unknown fields");
+      throw new Error("Payload objects must reject unknown fields");
     const required = schema.required ?? [];
     const properties = schema.properties ?? {};
     if (!required.every((name) => Object.hasOwn(properties, name)))

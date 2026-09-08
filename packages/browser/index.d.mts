@@ -4,11 +4,12 @@ import type { CatalogViews } from "./generated/catalog.mjs";
 export type { Document, ParseError };
 export type { Node } from "./generated/Node.js";
 export type { NodeKind } from "./generated/NodeKind.js";
+export { isKnownNode } from "./generated/nodes.mjs";
 export type { ReferenceData } from "./generated/ReferenceData.js";
 
 export interface Contract {
   readonly abiVersion: 2;
-  readonly astVersion: 3;
+  readonly astVersion: 4;
   readonly catalog: unknown;
   readonly limits: Readonly<{
     inputBytes: number;
@@ -25,18 +26,16 @@ export interface Rule<P extends Phase = Phase> {
   readonly phase: P;
 }
 export class PluginGroup {
-  constructor();
-  named(name: string): PluginGroup;
-  readonly name: string | null;
+  constructor(name: string);
+  readonly name: string;
   readonly parent: PluginGroup | null;
-  group(): PluginGroup;
-  new(): Plugin;
+  group(name: string): PluginGroup;
+  new(name: string): Plugin;
 }
 export class Plugin {
-  constructor();
-  static group(): PluginGroup;
-  named(name: string): Plugin;
-  readonly name: string | null;
+  constructor(name: string);
+  static group(name: string): PluginGroup;
+  readonly name: string;
   readonly namespace: PluginGroup | null;
   readonly inlineRules: readonly Rule<"inline">[];
   readonly blockRules: readonly Rule<"block">[];
@@ -60,22 +59,25 @@ export interface Grammar {
   describe(): string;
   dispose(): void;
 }
-export interface Parser {
-  parse(source: string): Document;
-  parseInline(source: string): Document;
+export interface Parser<AllowUnknown extends boolean = false> {
+  parse(source: string): Document<AllowUnknown>;
+  parseInline(source: string): Document<AllowUnknown>;
   dispose(): void;
 }
-export interface ParserOptions {
-  allowUnknownExtensions?: boolean;
+export interface ParserOptions<AllowUnknown extends boolean = boolean> {
+  allowUnknownNodes?: AllowUnknown;
 }
 export interface RuntimeOptions {
-  extensions?: ReadonlyMap<string, (data: unknown) => boolean>;
+  nodes?: ReadonlyMap<string, (data: unknown) => boolean>;
 }
 export interface Runtime extends CatalogViews {
   readonly contract: Contract;
   builder(): GrammarBuilder;
   /** Compile an unused preset, then share its compiled data with this parser. */
-  parser(grammar: Grammar, options?: ParserOptions): Parser;
+  parser<AllowUnknown extends boolean = false>(
+    grammar: Grammar,
+    options?: ParserOptions<AllowUnknown>,
+  ): Parser<AllowUnknown>;
   dispose(): void;
 }
 export type BuildError =

@@ -1,3 +1,4 @@
+import { names } from "@traptitech/markdown-parser/nodes";
 import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -14,16 +15,16 @@ try {
   try {
     assert.equal(
       parser.parse("**package**").children[0].children[0].kind,
-      "strong",
+      names.Strong,
     );
     assert.equal(
-      parser.parse(":stamp:").children[0].children[0].name,
-      "trap/stamp@1",
+      parser.parse(":stamp:").children[0].children[0].kind,
+      names.Stamp,
     );
     assert.equal(
       parser.parse("- parent\n\t- child").children[0].children[0].children[1]
         .kind,
-      "list",
+      names.List,
     );
     const render = createRenderer({ extensions: new Map() });
     assert.equal(

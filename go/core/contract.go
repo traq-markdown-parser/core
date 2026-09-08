@@ -30,7 +30,7 @@ func validateArtifact(ctx context.Context, instance api.Module) error {
 			}
 		}
 	}
-	for name, expected := range map[string]uint32{"abi_version": 2, "ast_version": 3} {
+	for name, expected := range map[string]uint32{"abi_version": 2, "ast_version": 4} {
 		value, err := call(ctx, instance, name)
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func validateArtifact(ctx context.Context, instance api.Module) error {
 	if err := ast.DecodeFields(raw, &contract, []string{"abiVersion", "astVersion", "catalog", "limits"}, nil, nil); err != nil {
 		return err
 	}
-	if contract.ABI != 2 || contract.AST != 3 {
+	if contract.ABI != 2 || contract.AST != 4 {
 		return fmt.Errorf("invalid artifact contract")
 	}
 	if contract.Limits.Input != 65536 || contract.Limits.Output != 1048576 || contract.Limits.Memory != 33554432 || contract.Limits.Grammars != 256 {

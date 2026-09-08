@@ -4,12 +4,12 @@ import { readFile } from "node:fs/promises";
 import { loadRuntime, MarkdownParseError } from "../packages/browser/index.mjs";
 import { validateDocument } from "../packages/browser/validate.mjs";
 import { createRunner } from "../packages/browser/call.mjs";
-import { extensions } from "../packages/browser/generated/extensions.mjs";
+import { nodes, names } from "../packages/browser/generated/nodes.mjs";
 const bytes = await readFile(
   new URL("../packages/browser/parser.wasm", import.meta.url),
 );
 
-test("artifact and extension compatibility fail during initialization", async (t) => {
+test("artifact mismatches fail at initialization and missing decoders at parse", async (t) => {
   await assert.rejects(loadRuntime(new Uint8Array([1, 2, 3])));
   // A valid Wasm module with no parser exports must also be rejected.
   await assert.rejects(
@@ -21,18 +21,17 @@ test("artifact and extension compatibility fail during initialization", async (t
       createRunner({ exports: { ...instance.exports, abi_version: () => 1 } }),
     /Unsupported Wasm ABI/,
   );
-  const runtime = await loadRuntime(bytes, { extensions: new Map() });
+  const runtime = await loadRuntime(bytes, { nodes: new Map() });
   t.after(() => runtime.dispose());
-  assert.throws(
-    () => runtime.parser(runtime.presets.traq.v1),
-    /Missing extension decoder/,
-  );
+  const strict = runtime.parser(runtime.presets.traq.v1);
+  assert.throws(() => strict.parse(":stamp:"), /Unsupported.*node/);
+  strict.dispose();
   const core = runtime.parser(runtime.presets.traq.v1, {
-    allowUnknownExtensions: true,
+    allowUnknownNodes: true,
   });
   assert.equal(
-    core.parse(":stamp:").children[0].children[0].name,
-    "trap/stamp@1",
+    core.parse(":stamp:").children[0].children[0].kind,
+    names.Stamp,
   );
 });
 
@@ -50,7 +49,7 @@ test("failed requests do not poison later calls; resources remain bounded", asyn
     );
   }
   assert.throws(() => core.parse(2), TypeError);
-  assert.equal(core.parseInline("**x**").children[0].kind, "strong");
+  assert.equal(core.parseInline("**x**").children[0].kind, names.Strong);
   assert.equal(core.parse("\ufefftext🦀").source, "\ufefftext🦀");
   const hostile = [
     "[".repeat(5000),
@@ -74,7 +73,7 @@ test("failed requests do not poison later calls; resources remain bounded", asyn
       assert(e instanceof MarkdownParseError);
       assert.equal(e.detail.code, "resource_limit");
     }
-    assert.equal(core.parse("after").children[0].children[0].value, "after");
+    assert.equal(core.parse("after").children[0].children[0].data.value, "after");
   }
   const columns = 7500;
   assert.throws(
@@ -118,7 +117,7 @@ test("common shape, UTF-8 boundaries and plugin payloads are validated", async (
   const source = '> 日本語\r\n> !{"type":"user","id":"u","raw":"@u"}';
   const doc = core.parse(source);
   const mention = doc.children[0].children[0].children.find(
-    (n) => n.name === "trap/reference@1",
+    (n) => n.kind === names.Reference,
   );
   assert.equal(
     new TextDecoder().decode(
@@ -139,7 +138,7 @@ test("common shape, UTF-8 boundaries and plugin payloads are validated", async (
       delete n.data.label;
     },
     (n) => {
-      n.name = "unknown@1";
+      n.kind = "unknown@1";
     },
     (n) => {
       n.span.start = 3;
@@ -152,9 +151,9 @@ test("common shape, UTF-8 boundaries and plugin payloads are validated", async (
     const altered = structuredClone(doc);
     change(
       altered.children[0].children[0].children.find(
-        (n) => n.name === "trap/reference@1",
+        (n) => n.kind === names.Reference,
       ),
     );
-    assert.throws(() => validateDocument(altered, source, extensions));
+    assert.throws(() => validateDocument(altered, source, nodes));
   }
 });

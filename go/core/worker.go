@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"slices"
 
 	"github.com/tetratelabs/wazero/api"
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
@@ -15,9 +14,8 @@ type worker struct {
 	grammars map[*grammarState]uint32
 }
 type builtGrammar struct {
-	Handle      uint32   `json:"handle"`
-	Extensions  []string `json:"extensions"`
-	Description string   `json:"description"`
+	Handle      uint32 `json:"handle"`
+	Description string `json:"description"`
 }
 
 func (w *worker) build(ctx context.Context, recipe []byte) (*builtGrammar, error) {
@@ -46,10 +44,10 @@ func (w *worker) build(ctx context.Context, recipe []byte) (*builtGrammar, error
 		return nil, decodeBuildError(result.Error)
 	}
 	var grammar builtGrammar
-	if err := ast.DecodeFields(result.Grammar, &grammar, []string{"handle", "extensions", "description"}, nil, nil); err != nil {
+	if err := ast.DecodeFields(result.Grammar, &grammar, []string{"handle", "description"}, nil, nil); err != nil {
 		return nil, err
 	}
-	if grammar.Handle == 0 || grammar.Extensions == nil {
+	if grammar.Handle == 0 {
 		return nil, fmt.Errorf("invalid grammar handle")
 	}
 	return &grammar, nil
@@ -62,7 +60,7 @@ func (w *worker) grammar(ctx context.Context, state *grammarState) (uint32, erro
 	if err != nil {
 		return 0, err
 	}
-	if compiled.Description != state.description || !slices.Equal(compiled.Extensions, state.extensions) {
+	if compiled.Description != state.description {
 		return 0, fmt.Errorf("inconsistent grammar compilation")
 	}
 	w.grammars[state] = compiled.Handle

@@ -1,0 +1,18 @@
+[package]
+name = "markdown-commonmark-contracts"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "CommonMark node types and shared contract declarations."
+
+[features]
+contracts = ["dep:ts-rs", "dep:schemars"]
+
+[dependencies]
+markdown-ast = { path = "../../core/ast" }
+markdown-definitions = { path = "../../core/definitions" }
+serde = { version = "1", features = ["derive"] }
+
+ts-rs = { version = "12", optional = true, features = ["serde-json-impl"] }
+schemars = { version = "1.2.2", optional = true }

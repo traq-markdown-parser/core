@@ -2,7 +2,7 @@ import { createRunner } from "./call.mjs";
 import { GrammarBuilder, composition } from "./builder.mjs";
 import { makeGrammar, makeParser } from "./grammar.mjs";
 import { loadCatalog } from "./catalog.mjs";
-import { extensions as defaults } from "./generated/extensions.mjs";
+import { nodes as defaults } from "./generated/nodes.mjs";
 import { catalog as expectedCatalog } from "./generated/catalog.mjs";
 
 export async function loadRuntime(bytes, options = {}) {
@@ -11,23 +11,23 @@ export async function loadRuntime(bytes, options = {}) {
     contract = runner.contract;
   if (JSON.stringify(contract.catalog) !== JSON.stringify(expectedCatalog))
     throw new Error("Wasm catalog does not match this SDK");
-  const extensions = new Map(options.extensions ?? defaults);
-  for (const [name, validate] of extensions)
+  const nodes = new Map(options.nodes ?? defaults);
+  for (const [name, validate] of nodes)
     if (typeof name !== "string" || typeof validate !== "function")
-      throw new TypeError("Invalid extension decoder");
+      throw new TypeError("Invalid node validator");
   const records = new Set();
   let disposed = false;
   function requireOpen() {
     if (disposed) throw new Error("Runtime is disposed");
   }
-  function register(snapshot, { description, extensions, handle = null }) {
+  function register(snapshot, { description, handle = null }) {
     requireOpen();
-    const record = { snapshot, description, extensions, handle, references: 1 };
+    const record = { snapshot, description, handle, references: 1 };
     records.add(record);
     return makeGrammar(owner, record);
   }
   const owner = {
-    extensions,
+    nodes,
     preset: register,
     build(snapshot) {
       requireOpen();
@@ -38,9 +38,7 @@ export async function loadRuntime(bytes, options = {}) {
       if (record.handle !== null) return;
       const compiled = runner.build(composition(record.snapshot));
       if (
-        compiled.description !== record.description ||
-        JSON.stringify(compiled.extensions) !==
-          JSON.stringify(record.extensions)
+        compiled.description !== record.description
       ) {
         runner.dispose();
         throw new Error("Preset compilation does not match the catalog");
@@ -53,7 +51,7 @@ export async function loadRuntime(bytes, options = {}) {
         record.handle,
         source,
         mode,
-        extensions,
+        nodes,
         allowUnknown,
       );
     },

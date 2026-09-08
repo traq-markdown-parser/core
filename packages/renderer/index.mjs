@@ -20,6 +20,7 @@ export function createRenderer({
   for (const handler of extensionHandlers.values())
     if (handler !== null && typeof handler !== "function")
       throw new TypeError("Expected extension handler");
+  for (const [kind, handler] of extensionHandlers) handlers.set(kind, handler);
   function render(document, inline) {
     let bytes;
     const fallback = (node, block) => {
@@ -43,10 +44,7 @@ export function createRenderer({
         fallback: (node) => fallback(node, block),
       };
       return values.flatMap((node) => {
-        const handler =
-          node.kind === "extension"
-            ? extensionHandlers.get(node.name)
-            : handlers.get(node.kind);
+        const handler = handlers.get(node.kind);
         return handler ? handler(node, ctx) : fallback(node, block);
       });
     }

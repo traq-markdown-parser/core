@@ -1,8 +1,8 @@
 use std::sync::LazyLock;
 static CONTRACT: LazyLock<String> = LazyLock::new(|| {
     serde_json::json!({
-        "abiVersion": 2, "astVersion": 3,
-        "catalog": traq_markdown::bindings::bundled().describe(),
+        "abiVersion": 2, "astVersion": 4,
+        "catalog": markdown_traq::bindings::bundled().describe(),
         "limits": {
             "inputBytes": super::buffers::MAX_INPUT,
             "outputBytes": super::buffers::MAX_OUTPUT,

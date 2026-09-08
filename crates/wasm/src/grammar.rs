@@ -1,11 +1,11 @@
 use super::buffers::IO;
-use serde::Serialize;
-use std::{cell::RefCell, collections::HashMap};
-use traq_markdown::{
+use markdown_traq::{
     Grammar,
     bindings::{self, Composition},
     engine::BuildError,
 };
+use serde::Serialize;
+use std::{cell::RefCell, collections::HashMap};
 
 pub const MAX_GRAMMARS: usize = 256;
 #[derive(Default)]
@@ -17,7 +17,6 @@ thread_local! { static GRAMMARS: RefCell<Grammars> = RefCell::default(); }
 #[derive(Serialize)]
 struct Built {
     handle: u32,
-    extensions: Vec<&'static str>,
     description: String,
 }
 fn invalid(reason: &str) -> BuildError {
@@ -42,7 +41,6 @@ fn build(source: &str) -> Result<Built, BuildError> {
         let grammar = bindings::bundled().build(&spec)?;
         let value = Built {
             handle,
-            extensions: grammar.extension_names().collect(),
             description: grammar.describe(),
         };
         // Never reuse identifiers: a released handle cannot address a later grammar.

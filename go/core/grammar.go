@@ -10,7 +10,6 @@ type grammarState struct {
 	definition     definition
 	recipe         []byte
 	description    string
-	extensions     []string
 	references     atomic.Int64
 	initialized    atomic.Bool
 	initialization chan struct{}
@@ -24,12 +23,11 @@ type Grammar struct {
 	closed  atomic.Bool
 }
 
-func (r *Runtime) newGrammar(snapshot definition, recipe []byte, description string, extensions []string) *Grammar {
+func (r *Runtime) newGrammar(snapshot definition, recipe []byte, description string) *Grammar {
 	state := &grammarState{
 		definition:     snapshot,
 		recipe:         recipe,
 		description:    description,
-		extensions:     extensions,
 		initialization: make(chan struct{}, 1),
 	}
 	state.references.Store(1)

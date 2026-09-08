@@ -11,7 +11,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "bash scripts/build.sh",
+    "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc -p examples/typescript/tsconfig.json",
     "test:rust": "cargo test --workspace --all-features",
@@ -20,7 +20,8 @@
     "example:go": "go -C examples/go run .",
     "example:ts": "node examples/typescript/main.ts",
     "examples": "npm run example:rust && npm run example:go && npm run example:ts",
-    "check:package": "node scripts/package-check.mjs"
+    "check:package": "node scripts/package-check.mjs",
+    "check:architecture": "node scripts/check-rust-boundaries.mjs"
   },
   "devDependencies": {
     "@types/node": "26.3.0",

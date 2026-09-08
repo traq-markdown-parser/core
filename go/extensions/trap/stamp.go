@@ -1,4 +1,4 @@
-// Code generated from Rust extension payload types. DO NOT EDIT.
+// Code generated from Rust node payload types. DO NOT EDIT.
 package trap
 
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/traq-markdown-parser/go/ast"
 )
 
-const StampName = "trap/stamp@1"
+const StampName = "markdown_trap_contracts::stamp::StampData"
 
 type Stamp struct {
 	Literal string `json:"literal"`

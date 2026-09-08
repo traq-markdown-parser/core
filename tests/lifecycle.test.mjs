@@ -52,8 +52,8 @@ test("explicit leases release Wasm grammars and repeated construction plateaus",
       () =>
         runtime
           .builder()
-          .add(new Plugin().named("same"))
-          .add(new Plugin().named("same"))
+          .add(new Plugin("same"))
+          .add(new Plugin("same"))
           .build(),
       GrammarBuildError,
     );
@@ -64,14 +64,14 @@ test("explicit leases release Wasm grammars and repeated construction plateaus",
       index < runtime.contract.limits.grammars;
       index++
     )
-      held.push(runtime.builder().build());
+      held.push(runtime.builder().add(runtime.plugins.commonmark.core).build());
     assert.throws(
-      () => runtime.builder().build(),
+      () => runtime.builder().add(runtime.plugins.commonmark.core).build(),
       (e) => e.detail?.reason === "live grammar limit exceeded",
     );
     held.forEach((g) => g.dispose());
     assert.equal(wasm.grammar_count(), baseline);
-    runtime.builder().build().dispose();
+    runtime.builder().add(runtime.plugins.commonmark.core).build().dispose();
   } finally {
     runtime.dispose();
   }

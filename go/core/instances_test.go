@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/traPtitech/traq-markdown-parser/go/extensions/generic"
 )
 
 func runtimeForTest(t *testing.T) *Runtime {
@@ -31,13 +33,14 @@ func requireOK(t *testing.T, err error) {
 func TestNamespaceAndComposition(t *testing.T) {
 	ctx := context.Background()
 	r := runtimeForTest(t)
-	generic := NewPluginGroup().Named("generic")
-	github := generic.Group().Named("github")
-	math := generic.New().Named("math")
+	generic := NewPluginGroup("generic")
+	github := generic.Group("github")
+	math := generic.New("math")
 	b := r.Builder()
+	requireOK(t, b.Add(r.Plugins.CommonMark.Core))
 	requireOK(t, b.Add(math))
-	requireOK(t, b.Add(github.New().Named("math")))
-	if b.Add(math.Named("renamed")) == nil {
+	requireOK(t, b.Add(github.New("math")))
+	if b.Add(math) == nil {
 		t.Fatal("duplicate symbol accepted")
 	}
 	g, err := b.Build(context.Background())
@@ -46,7 +49,7 @@ func TestNamespaceAndComposition(t *testing.T) {
 	if !strings.Contains(g.Describe(), "generic/github/math") {
 		t.Fatal("namespace missing")
 	}
-	requireOK(t, b.Add(generic.New().Named("math")))
+	requireOK(t, b.Add(generic.New("math")))
 	_, err = b.Build(context.Background())
 	var build *BuildError
 	if !errors.As(err, &build) || build.Code != "duplicate_name" {
@@ -82,12 +85,12 @@ func TestIndependentLeasesAndForks(t *testing.T) {
 	}
 	result, err := p.Parse(ctx, "$x$")
 	requireOK(t, err)
-	if strings.Contains(string(result.JSON), "generic/math_inline") {
+	if strings.Contains(string(result.JSON), generic.InlineMathName) {
 		t.Fatal("removed math still enabled")
 	}
 	result, err = original.Parse(ctx, "$x$")
 	requireOK(t, err)
-	if !strings.Contains(string(result.JSON), "generic/math_inline") {
+	if !strings.Contains(string(result.JSON), generic.InlineMathName) {
 		t.Fatal("original preset changed")
 	}
 	rebuilt, err := g.ToBuilder().Build(ctx)

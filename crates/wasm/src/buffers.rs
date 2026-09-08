@@ -1,9 +1,9 @@
+use markdown_traq::ParseError;
 use serde::{Serialize, ser::SerializeMap};
 use std::{
     cell::RefCell,
     io::{self, Write},
 };
-use traq_markdown::ParseError;
 
 pub const MAX_INPUT: usize = 65_536;
 pub const MAX_OUTPUT: usize = 1_048_576;
@@ -15,6 +15,40 @@ pub struct Buffers {
 }
 thread_local! { pub static IO: RefCell<Buffers> = RefCell::default(); }
 impl Buffers {
+    pub fn reply_document(&mut self, result: &Result<markdown_ast::Document, ParseError>) {
+        match result {
+            Ok(document) => match crate::nodes::codec().encode(document) {
+                Ok(bytes) if bytes.len() + 13 <= MAX_OUTPUT => {
+                    self.output.clear();
+                    self.output.extend_from_slice(b"{\"document\":");
+                    self.output.extend_from_slice(&bytes);
+                    self.output.push(b'}');
+                }
+                Ok(_) => {
+                    self.reply::<(), _>(
+                        "document",
+                        &Err(ParseError::ResourceLimit {
+                            resource: "output_bytes".into(),
+                        }),
+                    );
+                }
+                Err(error) => {
+                    let error = if error.is_io() {
+                        ParseError::ResourceLimit {
+                            resource: "output_bytes".into(),
+                        }
+                    } else {
+                        ParseError::InternalError
+                    };
+                    self.reply::<(), _>("document", &Err(error));
+                }
+            },
+            Err(error) => {
+                self.reply::<(), _>("document", &Err(error));
+            }
+        }
+    }
+
     pub fn source(&self) -> Result<&str, ParseError> {
         if !self.valid {
             return Err(ParseError::InternalError);
