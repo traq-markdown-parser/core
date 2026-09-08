@@ -1,5 +1,5 @@
 use crate::{Preset, Result};
-use markdown_ast::{Document, Node};
+use markdown_ast::{Document, Node, ValidationError, ValidationLimits};
 use std::cell::Cell;
 
 pub struct Renderer {
@@ -13,45 +13,21 @@ impl Renderer {
     }
 
     pub fn render(&self, doc: &Document) -> Result<String> {
-        if doc.source.len() > 65_536 {
-            return Err("resource_limit");
-        }
-        // Validate every descendant before any handler executes, even when a
-        // parent hides its children. Bound pending work before allocating it.
-        let mut pending = vec![];
-        let mut count = 0usize;
-        let mut push = |nodes: &[Node]| -> Result<()> {
-            count = count.saturating_add(nodes.len());
-            if count > 16_384 {
-                return Err("resource_limit");
-            }
-            Ok(())
-        };
-        push(&doc.children)?;
-        pending.extend(doc.children.iter().map(|n| (n, 1, 0..doc.source.len())));
-        while let Some((node, depth, parent)) = pending.pop() {
-            if depth > 64 {
-                return Err("resource_limit");
-            }
-            let span = node.span;
-            if span.start > span.end
-                || span.start < parent.start
-                || span.end > parent.end
-                || !doc.source.is_char_boundary(span.start)
-                || !doc.source.is_char_boundary(span.end)
-                || !node.validate()
-            {
-                return Err("invalid_node");
-            }
+        doc.validate(ValidationLimits::default())
+            .map_err(|error| match error {
+                ValidationError::InvalidSpan | ValidationError::InvalidNode => "invalid_node",
+                ValidationError::SourceBytes | ValidationError::Nodes | ValidationError::Depth => {
+                    "resource_limit"
+                }
+            })?;
+        // Registration is renderer policy. Check even hidden descendants before
+        // executing any handler, after the common tree validation succeeds.
+        let mut pending: Vec<_> = doc.children.iter().collect();
+        while let Some(node) = pending.pop() {
             if !self.preset.handlers.contains_key(&node.data_type_id()) {
                 return Err("unsupported_node");
             }
-            push(&node.children)?;
-            pending.extend(
-                node.children
-                    .iter()
-                    .map(|n| (n, depth + 1, span.start..span.end)),
-            );
+            pending.extend(&node.children);
         }
         Context {
             renderer: self,

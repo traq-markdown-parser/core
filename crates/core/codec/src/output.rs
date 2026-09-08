@@ -1,45 +1,17 @@
 use super::Codec;
-use markdown_ast::{Document, Node};
+use markdown_ast::{Document, Node, ValidationLimits};
 use serde::{Serialize, Serializer};
 
 pub(super) fn encode(document: &Document, codec: &Codec) -> serde_json::Result<Vec<u8>> {
     // Check before recursive serialization, including subtrees a renderer may hide.
     let limits = crate::DecodeLimits::default();
-    if document.source.len() > limits.source_bytes {
-        return Err(crate::fields::error("source byte limit"));
-    }
-    let mut pending: Vec<_> = document
-        .children
-        .iter()
-        .map(|node| (node, 1, 0..document.source.len()))
-        .collect();
-    let mut count = 0;
-    while let Some((node, depth, parent)) = pending.pop() {
-        count += 1;
-        if count > limits.nodes {
-            return Err(crate::fields::error("node limit"));
-        }
-        if depth > limits.depth {
-            return Err(crate::fields::error("depth limit"));
-        }
-        let span = node.span;
-        if span.start > span.end
-            || span.start < parent.start
-            || span.end > parent.end
-            || !document.source.is_char_boundary(span.start)
-            || !document.source.is_char_boundary(span.end)
-        {
-            return Err(crate::fields::error("invalid span"));
-        }
-        if !node.validate() {
-            return Err(crate::fields::error("invalid node shape"));
-        }
-        pending.extend(
-            node.children
-                .iter()
-                .map(|child| (child, depth + 1, span.start..span.end)),
-        );
-    }
+    document
+        .validate(ValidationLimits {
+            source_bytes: limits.source_bytes,
+            nodes: limits.nodes,
+            depth: limits.depth,
+        })
+        .map_err(<serde_json::Error as serde::ser::Error>::custom)?;
     let mut output = LimitedOutput {
         bytes: vec![],
         limit: limits.json_bytes,

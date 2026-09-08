@@ -65,6 +65,9 @@ impl Budget {
         }
         Ok(())
     }
+    pub(crate) fn remaining_work(&self) -> usize {
+        self.limits.work.saturating_sub(self.work)
+    }
     pub fn token(&mut self) -> Result<(), ParseError> {
         self.tokens = self
             .tokens

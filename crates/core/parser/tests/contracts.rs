@@ -93,3 +93,49 @@ fn source_helpers_reject_invalid_ranges() {
         );
     }
 }
+
+#[test]
+fn final_validation_stops_at_the_remaining_work_budget() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static CHECKS: AtomicUsize = AtomicUsize::new(0);
+    #[derive(Clone, Debug, PartialEq)]
+    struct Counted;
+    impl NodeData for Counted {
+        fn validate(&self, _: &[Node]) -> bool {
+            CHECKS.fetch_add(1, Ordering::Relaxed);
+            true
+        }
+    }
+    let mut plugin = plugin();
+    plugin.add(InlineRule::new(b"x", |_, _| {
+        Ok(Some(InlineMatch {
+            end: 1,
+            action: InlineAction::Node {
+                kind: Text("parent".into()).into(),
+                inhibit_brackets: false,
+                children: (0..30)
+                    .map(|_| Node::leaf(Span { start: 0, end: 1 }, Counted))
+                    .collect(),
+            },
+        }))
+    }));
+    let result = parser(&plugin)
+        .with_limits(Limits {
+            work: 20,
+            ..Limits::default()
+        })
+        .parse_inline("x");
+    assert!(matches!(result, Err(ParseError::ResourceLimit { resource }) if resource == "work"));
+    assert!(CHECKS.load(Ordering::Relaxed) <= 20);
+    CHECKS.store(0, Ordering::Relaxed);
+    assert!(
+        parser(&plugin)
+            .with_limits(Limits {
+                work: 100,
+                ..Limits::default()
+            })
+            .parse_inline("x")
+            .is_ok()
+    );
+    assert_eq!(CHECKS.load(Ordering::Relaxed), 30);
+}

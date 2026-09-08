@@ -26,7 +26,14 @@ assert!(node.validate());
 `node.get::<T>()` は保存された具体型を借用し、JSON 変換やコピーを行わない。
 
 `NodeData::validate` は自身と直接の子の関係を検査し、既定は true。
-子孫全体の走査・UTF-8 原文位置・資源制限の検査は parser / codec / renderer が担当する。
+完成した AST の全体検証は `document.validate(limits)` で行う。
+`ValidationLimits { source_bytes, nodes, depth }` を受け取り、成功時は検証したノード数を返す。
+原文サイズ、子孫全体の数・深さ、親の範囲内の UTF-8 span、各ノードの `NodeData::validate()` を検査する。
+既定の上限は原文65,536バイト・16,384ノード・深さ64。変更した上限も指定できる。
+失敗は `ValidationError` で返す。登録された codec や handler の有無は検査しない。
+parser / renderer / extractor / codec の出力処理はこの検証を利用し、独自の制限やエラー形式を維持する。
+codec の受信時は AST を構築する前にも入力を検査する。
+検証結果はキャッシュしないため、後から AST を編集した場合は再検証する。
 生成や編集の操作自体は検証を行わない。
 
 `Node` / `Document` は Clone・PartialEq・Send・Sync に対応する。Eq は要求しない。

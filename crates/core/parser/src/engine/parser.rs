@@ -1,5 +1,5 @@
 use super::{Budget, Grammar, Limits, ParseError, block, inline, source::SourceView};
-use markdown_ast::Document;
+use markdown_ast::{Document, ValidationError, ValidationLimits};
 
 pub struct Parser {
     grammar: Grammar,
@@ -34,39 +34,29 @@ impl Parser {
         } else {
             block::parse(&view, grammar, &mut budget)?
         };
-        let mut pending: Vec<_> = children
-            .iter()
-            .map(|node| (node, 1, 0..source.len()))
-            .collect();
-        let mut count = 0;
-        while let Some((node, depth, parent)) = pending.pop() {
-            count += 1;
-            budget.spend(1)?;
-            budget.depth(depth)?;
-            if count > self.limits.nodes {
-                return Err(ParseError::limit("tokens"));
-            }
-            let span = node.span;
-            if span.start > span.end
-                || span.start < parent.start
-                || span.end > parent.end
-                || !source.is_char_boundary(span.start)
-                || !source.is_char_boundary(span.end)
-            {
-                return Err(ParseError::InternalError);
-            }
-            if !node.validate() {
-                return Err(ParseError::InternalError);
-            }
-            pending.extend(
-                node.children
-                    .iter()
-                    .map(|child| (child, depth + 1, span.start..span.end)),
-            );
-        }
-        Ok(Document {
+        let document = Document {
             source: source.into(),
             children,
-        })
+        };
+        let remaining_work = budget.remaining_work();
+        let node_count = document
+            .validate(ValidationLimits {
+                source_bytes: self.limits.input_bytes,
+                nodes: self.limits.nodes.min(remaining_work),
+                depth: self.limits.depth,
+            })
+            .map_err(|error| match error {
+                ValidationError::SourceBytes => ParseError::limit("input_bytes"),
+                ValidationError::Nodes if remaining_work <= self.limits.nodes => {
+                    ParseError::limit("work")
+                }
+                ValidationError::Nodes => ParseError::limit("tokens"),
+                ValidationError::Depth => ParseError::limit("depth"),
+                ValidationError::InvalidSpan | ValidationError::InvalidNode => {
+                    ParseError::InternalError
+                }
+            })?;
+        budget.spend(node_count)?;
+        Ok(document)
     }
 }
