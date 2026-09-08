@@ -1,39 +1,10 @@
-# Local design work, prototypes, application checkouts, and private corpora.
-/experiments/
-/integrations/
-/.integration/
-/.private/
-/docs/plan/
-/docs/reports/
-
-# Local integration/corpus tools retained for development history.
-/scripts/bundle-integration.mjs
-/scripts/integration.mjs
-/tests/benchmark-browser.mjs
-/tests/sui-browser.mjs
-/tests/traq-api.mjs
-/go/cmd/corpus/
-
-# Retired local tools retained until deletion is approved.
-/tests/hosts.mjs
-/tests/rendering.mjs
-/go/core/stages_test.go
-/crates/markdown/
-
-# Dependencies and build outputs.
 **/target/
 **/node_modules/
 /dist/
-/packages/browser/parser.wasm
-/packages/browser/contract.json
-/packages/browser/LICENSE
-/packages/renderer/LICENSE
-/packages/definitions/LICENSE
-*.exe
+/coverage/
+/.private/
 *.log
 *.tsbuildinfo
-
-# Credentials and machine-local configuration.
 **/.env
 **/.env.*
 .DS_Store

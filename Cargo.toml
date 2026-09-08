@@ -1,39 +1,16 @@
 [workspace]
 members = [
-    # Core: grammar-independent building blocks.
-    "crates/core/ast",
-    "crates/core/definitions",
-    "crates/core/definitions-derive",
-    "crates/core/parser",
-    "crates/core/renderer",
-    "crates/core/extractor",
-    "crates/core/codec",
-
-    # CommonMark and reusable syntax extensions.
-    "crates/commonmark/contracts",
-    "crates/commonmark/syntax",
-    "crates/commonmark/text",
-    "crates/commonmark/extensions/contracts",
-    "crates/commonmark/extensions/syntax",
-    "crates/commonmark/extensions/text",
-
-    # traP extensions and traQ presets.
-    "crates/trap/contracts",
-    "crates/trap/syntax",
-    "crates/trap/text",
-    "crates/trap/extraction",
-    "crates/trap/traq",
-    "crates/trap/traq-processing",
-
-    # Distribution and examples.
-    "crates/wasm",
-    "examples/rust",
+    "crates/ast",
+    "crates/codec",
+    "crates/definitions-derive",
+    "crates/definitions",
+    "crates/extractor",
+    "crates/parser",
+    "crates/renderer",
 ]
-exclude = ["experiments/*", ".private/*"]
 resolver = "3"
 
 [workspace.package]
-# Only auxiliary packages inherit this version. Each series owns its versions.
 version = "0.1.0"
 edition = "2024"
 license = "MIT"

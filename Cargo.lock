@@ -3,21 +3,6 @@
 version = 4
 
 [[package]]
-name = "aho-corasick"
-version = "1.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba"
-dependencies = [
- "memchr",
-]
-
-[[package]]
-name = "dyn-clone"
-version = "1.0.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,16 +24,6 @@ name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
-
-[[package]]
-name = "idna"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e14ddfc70884202db2244c223200c204c2bda1bc6e0998d11b5e024d657209e6"
-dependencies = [
- "unicode-bidi",
- "unicode-normalization",
-]
 
 [[package]]
 name = "indexmap"
@@ -76,43 +51,9 @@ version = "0.1.0"
 dependencies = [
  "erased-serde",
  "markdown-ast",
- "markdown-commonmark-contracts",
  "markdown-definitions",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "markdown-commonmark"
-version = "0.1.0"
-dependencies = [
- "idna",
- "markdown-commonmark-contracts",
- "markdown-parser",
- "mdurl",
- "regex",
- "serde_json",
- "unicode-general-category",
-]
-
-[[package]]
-name = "markdown-commonmark-contracts"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-definitions",
- "schemars",
- "serde",
- "ts-rs",
-]
-
-[[package]]
-name = "markdown-commonmark-text"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-commonmark-contracts",
- "markdown-renderer",
 ]
 
 [[package]]
@@ -141,38 +82,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "markdown-generic-contracts"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-definitions",
- "schemars",
- "serde",
- "ts-rs",
-]
-
-[[package]]
-name = "markdown-generic-syntax"
-version = "0.1.0"
-dependencies = [
- "markdown-commonmark",
- "markdown-commonmark-contracts",
- "markdown-definitions",
- "markdown-generic-contracts",
- "markdown-parser",
- "regex",
-]
-
-[[package]]
-name = "markdown-generic-text"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-generic-contracts",
- "markdown-renderer",
-]
-
-[[package]]
 name = "markdown-parser"
 version = "0.1.0"
 dependencies = [
@@ -193,100 +102,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "markdown-trap-contracts"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-definitions",
- "schemars",
- "serde",
- "ts-rs",
-]
-
-[[package]]
-name = "markdown-trap-extraction"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-extractor",
- "markdown-trap-contracts",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "markdown-trap-syntax"
-version = "0.1.0"
-dependencies = [
- "markdown-commonmark",
- "markdown-definitions",
- "markdown-parser",
- "markdown-trap-contracts",
- "regex",
- "serde_json",
-]
-
-[[package]]
-name = "markdown-trap-text"
-version = "0.1.0"
-dependencies = [
- "markdown-commonmark-text",
- "markdown-generic-text",
- "markdown-renderer",
- "markdown-trap-contracts",
- "markdown-traq",
-]
-
-[[package]]
-name = "markdown-traq"
-version = "0.1.0"
-dependencies = [
- "markdown-commonmark",
- "markdown-commonmark-contracts",
- "markdown-definitions",
- "markdown-generic-syntax",
- "markdown-parser",
- "markdown-trap-syntax",
- "serde_json",
-]
-
-[[package]]
-name = "markdown-traq-processing"
-version = "0.1.0"
-dependencies = [
- "markdown-commonmark-contracts",
- "markdown-commonmark-text",
- "markdown-extractor",
- "markdown-generic-text",
- "markdown-renderer",
- "markdown-trap-extraction",
- "markdown-trap-text",
- "markdown-traq",
- "serde_json",
-]
-
-[[package]]
-name = "mdurl"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5736ba45bbac8f7ccc99a897f88ce85e508a18baec973a040f2514e6cdbff0d2"
-dependencies = [
- "idna",
- "once_cell",
- "regex",
-]
-
-[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
-
-[[package]]
-name = "once_cell"
-version = "1.21.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "proc-macro-crate"
@@ -316,80 +135,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ref-cast"
-version = "1.0.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e440fb4e4b4147295338efb76001ab9e4efc0e5839df2c47fc5ac2381d365c3"
-dependencies = [
- "ref-cast-impl",
-]
-
-[[package]]
-name = "ref-cast-impl"
-version = "1.0.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92ecd8964f8453721699a1ed72037b0db49ce2f5a5138486ee89bed6f67cdf3a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.5",
-]
-
-[[package]]
-name = "regex"
-version = "1.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-automata",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.4.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-syntax"
-version = "0.8.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
-
-[[package]]
-name = "schemars"
-version = "1.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "687274d293b6cdc6e73e0fee520bf2049650090d7164f87672d212a3c530cf4a"
-dependencies = [
- "dyn-clone",
- "ref-cast",
- "schemars_derive",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "schemars_derive"
-version = "1.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d98c67716b46af2f0b8cf752abc930f6f9aecfbf671ecfb531db8a31dbe4e2ba"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde_derive_internals",
- "syn 3.0.5",
-]
-
-[[package]]
 name = "serde"
 version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -413,17 +158,6 @@ name = "serde_derive"
 version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.5",
-]
-
-[[package]]
-name = "serde_derive_internals"
-version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f852137cce035d6a4df67ccce505ff6b3e9fd3a10e3e52b24dc71e650bb1a9bd"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -495,21 +229,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tinyvec"
-version = "1.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cf0ded5c4e56918d8f8a339e1bb67d038d3bc6d144ac407904015ba2e4cde9b"
-dependencies = [
- "tinyvec_macros",
-]
-
-[[package]]
-name = "tinyvec_macros"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
-
-[[package]]
 name = "toml_datetime"
 version = "1.1.1+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -540,37 +259,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "traq-markdown-example"
-version = "0.1.0"
-dependencies = [
- "markdown-traq",
-]
-
-[[package]]
-name = "traq-markdown-wasm"
-version = "0.1.0"
-dependencies = [
- "markdown-ast",
- "markdown-codec",
- "markdown-commonmark-contracts",
- "markdown-definitions",
- "markdown-generic-contracts",
- "markdown-parser",
- "markdown-trap-contracts",
- "markdown-traq",
- "schemars",
- "serde",
- "serde_json",
- "ts-rs",
-]
-
-[[package]]
 name = "ts-rs"
 version = "12.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "756050066659291d47a554a9f558125db17428b073c5ffce1daf5dcb0f7231d8"
 dependencies = [
- "serde_json",
  "thiserror",
  "ts-rs-macros",
 ]
@@ -594,31 +287,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc7d623258602320d5c55d1bc22793b57daff0ec7efc270ea7d55ce1d5f5471c"
 
 [[package]]
-name = "unicode-bidi"
-version = "0.3.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c1cb5db39152898a79168971543b1cb5020dff7fe43c8dc468b0885f5e29df5"
-
-[[package]]
-name = "unicode-general-category"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2281c8c1d221438e373249e065ca4989c4c36952c211ff21a0ee91c44a3869e7"
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
-
-[[package]]
-name = "unicode-normalization"
-version = "0.1.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8"
-dependencies = [
- "tinyvec",
-]
 
 [[package]]
 name = "winapi-util"
