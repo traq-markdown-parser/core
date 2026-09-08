@@ -1,5 +1,5 @@
 use crate::{Plugin, Result, plugin::Handler};
-use markdown_definitions::PluginGroup;
+use markdown_definitions::validate_names;
 use std::{any::TypeId, collections::HashMap, sync::Arc};
 
 /// Immutable, reusable handlers. No parser or runtime resources are retained.
@@ -47,7 +47,8 @@ impl PresetBuilder {
     }
 
     pub fn build(self) -> Result<Preset> {
-        validate_names(&self.plugins)?;
+        validate_names(self.plugins.iter().map(|plugin| &plugin.declaration))
+            .map_err(|_| "duplicate_name")?;
         let handlers = self
             .plugins
             .iter()
@@ -62,35 +63,4 @@ impl PresetBuilder {
             handlers: Arc::new(handlers),
         })
     }
-}
-
-// Only selected declarations participate, using parent identity rather than a
-// slash-separated identifier. These are display-name collisions, not type IDs.
-fn validate_names(plugins: &[Plugin]) -> Result<()> {
-    let mut groups: Vec<&PluginGroup> = vec![];
-    for plugin in plugins {
-        let mut parent = plugin.declaration.namespace();
-        while let Some(group) = parent {
-            if groups.contains(&group) {
-                break;
-            }
-            groups.push(group);
-            parent = group.parent();
-        }
-    }
-    let entries: Vec<_> = groups
-        .iter()
-        .map(|g| (g.parent(), g.name()))
-        .chain(
-            plugins
-                .iter()
-                .map(|p| (p.declaration.namespace(), p.declaration.name())),
-        )
-        .collect();
-    for (index, entry) in entries.iter().enumerate() {
-        if entries[..index].contains(entry) {
-            return Err("duplicate_name");
-        }
-    }
-    Ok(())
 }

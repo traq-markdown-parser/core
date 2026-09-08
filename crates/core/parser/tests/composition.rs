@@ -65,3 +65,38 @@ fn rule_names_are_checked_per_plugin_and_phase() {
         );
     }
 }
+
+#[test]
+fn shared_name_checks_keep_parser_diagnostics_and_rule_error_priority() {
+    let root = Declaration::group("generic");
+    let nested = root.group("nested");
+    let first = Plugin::new(&nested.new("same"));
+    let mut second = Plugin::new(&nested.new("same"));
+    for rule_collision in [false, true] {
+        if rule_collision {
+            for marker in [b"a" as &'static [u8], b"b"] {
+                second.add(InlineRule::new(marker, |_, _| Ok(None)).named("rule"));
+            }
+        }
+        let mut builder = GrammarBuilder::new();
+        builder
+            .add(&plugin())
+            .unwrap()
+            .add(&first)
+            .unwrap()
+            .add(&second)
+            .unwrap();
+        let expected = if rule_collision {
+            BuildError::DuplicateName {
+                scope: "generic/nested/same / inline".into(),
+                name: "rule".into(),
+            }
+        } else {
+            BuildError::DuplicateName {
+                scope: "generic/nested".into(),
+                name: "same".into(),
+            }
+        };
+        assert!(matches!(builder.build(), Err(error) if error == expected));
+    }
+}

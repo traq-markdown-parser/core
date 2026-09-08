@@ -18,7 +18,7 @@ pub(crate) struct Definition {
 #[derive(Clone)]
 pub struct Plugin {
     pub(crate) definition: Arc<Definition>,
-    declaration: markdown_definitions::Plugin,
+    pub(super) declaration: markdown_definitions::Plugin,
 }
 impl Plugin {
     pub fn new(declaration: &markdown_definitions::Plugin) -> Self {

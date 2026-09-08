@@ -23,7 +23,14 @@ Plugin / PluginGroup の引数は必須の表示名。ID ではなく、通信�
 内部では親を共有所有するため、親の変数がスコープを抜けても階層を保持する。
 Plugin.namespace() と PluginGroup.parent() は親の共有宣言を借用する。
 ルートでは None を返す。表示名の連結を ID として利用する API ではない。
-構成内の重複検査は、登録先の builder が担当する。
+構成内の表示名の重複検査は、登録先の builder が共通関数 `validate_names` を呼んで行う。
+Plugin 作成者が検査を定義したり、利用者が明示的に呼んだりする必要はない。
+
+独自の builder を実装する場合は、採用した共有宣言の参照を `validate_names(plugins)?` に渡す。
+その宣言と祖先 group だけを検査し、同じ親で同じ表示名を使う Plugin / group を拒否する。
+異なる親の同名は許可する。名前のスラッシュを階層として解釈しない。
+失敗時の `NameCollision { scope, name }` は人間向けの表示情報で、同一性の判定には使わない。
+rule 名・handler 型・実装インスタンスの重複検査は、各 builder の責務。
 
 `#[derive(NodeType)]` は型の定義モジュールと名前から通信メタデータを生成する。
 型引数・const 引数を区別し、alias / re-export / Plugin の表示名・登録順には依存しない。
