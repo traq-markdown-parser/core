@@ -8,26 +8,34 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "contracts", derive(ts_rs::TS, schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct GroupSpec {
+    #[cfg_attr(feature = "contracts", schemars(with = "Option<u32>"))]
     pub parent: Option<usize>,
     pub name: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "contracts", derive(ts_rs::TS, schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct PluginSpec {
+    #[cfg_attr(feature = "contracts", schemars(with = "Option<u32>"))]
     pub group: Option<usize>,
     pub name: Option<String>,
+    #[cfg_attr(feature = "contracts", schemars(with = "Vec<u32>"))]
     pub rules: Vec<usize>,
     /// Internal catalog references. User-facing SDKs carry these with the plugin.
     #[serde(default)]
+    #[cfg_attr(feature = "contracts", schemars(with = "Vec<u32>"))]
     pub text: Vec<usize>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "contracts", derive(ts_rs::TS, schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct Composition {
     pub groups: Vec<GroupSpec>,
     pub plugins: Vec<PluginSpec>,
+    #[cfg_attr(feature = "contracts", schemars(with = "Vec<u32>"))]
     pub order: Vec<usize>,
 }
 
