@@ -20,6 +20,7 @@ export async function nodeFiles(manifest, input) {
         source
           .replace(/^\/\/[^\n]*\n/gm, "")
           .replace(/^import type .*;\r?\n/gm, "")
+          .replace(/[ \t]+$/gm, "")
           .trim(),
       );
       for (const match of source.matchAll(/from ["']\.\/([^"']+)\.js["']/g))
