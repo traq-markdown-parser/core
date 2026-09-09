@@ -1,11 +1,16 @@
 import type { PluginGroup } from "./definitions.js";
 import type { Plugin, Implementation } from "./plugin.js";
-import type { Preset, Handler } from "./types.js";
+import type { Preset, Handler, Fallback } from "./types.js";
 import { implementation } from "./plugin.js";
 
-const presets = new WeakMap<Preset, Map<string, Handler>>();
+const presets = new WeakMap<
+  Preset,
+  { handlers: Map<string, Handler>; fallback: Fallback }
+>();
 
-export function handlers(preset: Preset) {
+const defaultFallback: Fallback = (text) => text;
+
+export function configuration(preset: Preset) {
   const value = presets.get(preset);
 
   if (!value) throw new TypeError("Expected renderer Preset");
@@ -69,12 +74,18 @@ export class PresetBuilder {
     return this;
   }
 
-  build() {
+  build({ fallback = defaultFallback }: { fallback?: Fallback } = {}) {
+    if (typeof fallback !== "function")
+      throw new TypeError("Expected render fallback");
+
     validateNames(this.#plugins);
 
     const preset = Object.freeze({}) as Preset;
 
-    presets.set(preset, new Map(this.#plugins.flatMap((p) => [...p.handlers])));
+    presets.set(preset, {
+      handlers: new Map(this.#plugins.flatMap((p) => [...p.handlers])),
+      fallback,
+    });
 
     return preset;
   }

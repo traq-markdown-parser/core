@@ -5,7 +5,7 @@ import type {
   Renderer,
   RenderContext,
 } from "./types.js";
-import { handlers as presetHandlers } from "./preset.js";
+import { configuration } from "./preset.js";
 import { escapeHtml } from "./html.js";
 
 export type {
@@ -15,46 +15,48 @@ export type {
   Renderer,
   RenderContext,
   Handler,
+  Fallback,
 } from "./types.js";
 
 export { Plugin } from "./plugin.js";
 export { PresetBuilder } from "./preset.js";
 
 export function renderer(preset: Preset): Renderer {
-  const handlers = presetHandlers(preset);
+  const { handlers, fallback: renderFallback } = configuration(preset);
 
-  function render(document: Document, block: boolean) {
+  function render(document: Document) {
     let bytes: Uint8Array | undefined;
 
-    const fallback = (node: Node, block: boolean) => {
+    const fallback = (node: Node) => {
       bytes ??= new TextEncoder().encode(document.source);
       const text = escapeHtml(
         new TextDecoder().decode(
           bytes.subarray(node.span.start, node.span.end),
         ),
       );
-      return block ? "<p>" + text + "</p>\n" : text;
+      const output = renderFallback(text);
+      if (typeof output !== "string")
+        throw new TypeError("Render fallback must return an HTML string");
+      return output;
     };
 
     function nodes(
       values: Node[] = [],
-      block = false,
       ancestors: readonly Node[] = [],
     ): string {
       return values
         .map((node) => {
           const handler = handlers.get(node.kind);
 
-          if (!handler) return fallback(node, block);
+          if (!handler) return fallback(node);
 
           const parents = [...ancestors, node];
           const context: RenderContext = {
             source: document.source,
             ancestors,
             escape: escapeHtml,
-            inline: (values) => nodes(values, false, parents),
-            blocks: (values) => nodes(values, true, parents),
-            fallback: (node) => fallback(node, block),
+            render: (values) => nodes(values, parents),
+            fallback,
           };
 
           const output = handler(node, context);
@@ -65,10 +67,7 @@ export function renderer(preset: Preset): Renderer {
         .join("");
     }
 
-    return nodes(document.children, block);
+    return nodes(document.children);
   }
-  return Object.freeze({
-    render: (document: Document) => render(document, true),
-    renderInline: (document: Document) => render(document, false),
-  });
+  return Object.freeze({ render });
 }

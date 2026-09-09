@@ -7,13 +7,15 @@ export interface RenderContext {
   source: string;
   /** Escape text before including it in a custom HTML handler. */
   escape(text: string): string;
-  inline(nodes?: Node[]): string;
-  blocks(nodes?: Node[]): string;
+  render(nodes?: Node[]): string;
   fallback(node: Node): string;
 }
 
 /** Handlers return trusted HTML. Escape values obtained from the document. */
 export type Handler = (node: Node, context: RenderContext) => string;
+
+/** Receives HTML-escaped source for a node without a render handler. */
+export type Fallback = (escapedSource: string) => string;
 
 declare const identity: unique symbol;
 
@@ -23,5 +25,4 @@ export interface Preset {
 
 export interface Renderer {
   render(document: Document): string;
-  renderInline(document: Document): string;
 }
