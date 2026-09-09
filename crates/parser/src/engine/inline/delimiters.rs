@@ -7,53 +7,67 @@ pub(super) fn balance(
     ds: &mut [Delimiter],
     budget: &mut Budget,
 ) -> Result<(), ParseError> {
-    let mut bottoms = std::collections::HashMap::<(usize, u8), [isize; 6]>::new();
+    pair_delimiters(ds, budget)?;
+    mark_strong_pairs(tokens, ds, budget)
+}
+
+fn pair_delimiters(ds: &mut [Delimiter], budget: &mut Budget) -> Result<(), ParseError> {
+    let mut lower_bounds = std::collections::HashMap::<(usize, u8), [isize; 6]>::new();
     let mut jumps = vec![0; ds.len()];
-    let (mut header, mut last_token) = (0, None);
-    for closer in 0..ds.len() {
+    let (mut header, mut previous_token) = (0, None);
+    for closer_index in 0..ds.len() {
         budget.spend(1)?;
-        if ds[header].key != ds[closer].key || last_token != ds[closer].token.checked_sub(1) {
-            header = closer;
+        if ds[header].key != ds[closer_index].key
+            || previous_token != ds[closer_index].token.checked_sub(1)
+        {
+            header = closer_index;
         }
-        last_token = Some(ds[closer].token);
-        if !ds[closer].close {
+        previous_token = Some(ds[closer_index].token);
+        if !ds[closer_index].close {
             continue;
         }
-        let bottom = bottoms.entry(ds[closer].key).or_insert([-1; 6]);
-        let parameter = usize::from(ds[closer].open) * 3 + ds[closer].length % 3;
-        let min = bottom[parameter];
+        let bottom = lower_bounds.entry(ds[closer_index].key).or_insert([-1; 6]);
+        let parameter = usize::from(ds[closer_index].open) * 3 + ds[closer_index].length % 3;
+        let minimum = bottom[parameter];
         let mut opener = header as isize - jumps[header] as isize - 1;
         let mut new_min = opener;
-        while opener > min {
+        while opener > minimum {
             budget.spend(1)?;
-            let o = opener as usize;
-            let a = ds[o];
-            let b = ds[closer];
-            let odd = (a.close || b.open)
-                && (a.length + b.length).is_multiple_of(3)
-                && (!a.length.is_multiple_of(3) || !b.length.is_multiple_of(3));
-            if a.key == b.key && a.open && a.end.is_none() && !odd {
-                let jump = if o > 0 && !ds[o - 1].open {
-                    jumps[o - 1] + 1
+            let opener_index = opener as usize;
+            let opening = ds[opener_index];
+            let closing = ds[closer_index];
+            let odd_match = (opening.close || closing.open)
+                && (opening.length + closing.length).is_multiple_of(3)
+                && (!opening.length.is_multiple_of(3) || !closing.length.is_multiple_of(3));
+            if opening.key == closing.key && opening.open && opening.end.is_none() && !odd_match {
+                let jump = if opener_index > 0 && !ds[opener_index - 1].open {
+                    jumps[opener_index - 1] + 1
                 } else {
                     0
                 };
-                jumps[closer] = closer - o + jump;
-                jumps[o] = jump;
-                ds[closer].open = false;
-                ds[o].end = Some(closer);
-                ds[o].close = false;
+                jumps[closer_index] = closer_index - opener_index + jump;
+                jumps[opener_index] = jump;
+                ds[closer_index].open = false;
+                ds[opener_index].end = Some(closer_index);
+                ds[opener_index].close = false;
                 new_min = -1;
-                last_token = None;
+                previous_token = None;
                 break;
             }
-            opener -= jumps[o] as isize + 1;
+            opener -= jumps[opener_index] as isize + 1;
         }
         if new_min != -1 {
             bottom[parameter] = new_min;
         }
     }
+    Ok(())
+}
 
+fn mark_strong_pairs(
+    tokens: &mut [Token],
+    ds: &mut [Delimiter],
+    budget: &mut Budget,
+) -> Result<(), ParseError> {
     let mut i = ds.len();
     while i > 0 {
         budget.spend(1)?;

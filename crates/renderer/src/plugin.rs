@@ -59,10 +59,7 @@ fn erase<T: NodeData>(
     handler: impl Fn(&T, &[Node], &Context<'_>) -> Result<String> + Send + Sync + 'static,
 ) -> Handler {
     Arc::new(move |node, context| {
-        handler(
-            node.get::<T>().ok_or("invalid_payload")?,
-            &node.children,
-            context,
-        )
+        let payload = node.get::<T>().ok_or("invalid_payload")?;
+        handler(payload, &node.children, context)
     })
 }

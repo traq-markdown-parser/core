@@ -64,18 +64,9 @@ fn tokenize(
             start: position,
             grammar,
         };
-        let mut matched = None;
-        for entry in &grammar.data.block {
-            if let Some(found) = (entry.data.implementation.parse)(&input, budget)? {
-                matched = Some(found);
-                break;
-            }
-        }
-        let found = matched.ok_or(ParseError::InternalError)?;
+        let found = match_block(&input, budget)?;
+        validate_match(&found, position, lines.len())?;
 
-        if found.end <= position || found.end > lines.len() {
-            return Err(ParseError::InternalError);
-        }
         for definition in found.definitions {
             references
                 .entry(definition.key)
@@ -88,12 +79,51 @@ fn tokenize(
         }
         position = found.end;
 
-        if found.consume_separator && position < lines.len() && blank(input.line(position)) {
-            loose |= position < last_nonblank;
-            position += 1;
-        }
+        consume_separator(
+            &input,
+            found.consume_separator,
+            last_nonblank,
+            &mut position,
+            &mut loose,
+        );
     }
     Ok(BlockBatch { nodes, loose })
+}
+
+fn match_block(
+    input: &BlockInput<'_>,
+    budget: &mut Budget,
+) -> Result<super::BlockMatch, ParseError> {
+    for entry in &input.grammar.data.block {
+        if let Some(found) = (entry.data.implementation.parse)(input, budget)? {
+            return Ok(found);
+        }
+    }
+    Err(ParseError::InternalError)
+}
+
+fn validate_match(
+    found: &super::BlockMatch,
+    start: usize,
+    line_count: usize,
+) -> Result<(), ParseError> {
+    if found.end <= start || found.end > line_count {
+        return Err(ParseError::InternalError);
+    }
+    Ok(())
+}
+
+fn consume_separator(
+    input: &BlockInput<'_>,
+    consume: bool,
+    last_nonblank: usize,
+    position: &mut usize,
+    loose: &mut bool,
+) {
+    if consume && *position < input.lines.len() && blank(input.line(*position)) {
+        *loose |= *position < last_nonblank;
+        *position += 1;
+    }
 }
 
 fn resolve_blocks(

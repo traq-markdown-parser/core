@@ -38,13 +38,23 @@ func NewRuntime(ctx context.Context, wasm []byte, artifact Artifact) (*Runtime, 
 		rt.Close(context.Background())
 		return nil, err
 	}
-	for _, name := range []string{"input_ptr", "output_ptr", "configure", "parse", "configure_processor", "process"} {
-		if compiled.ExportedMemories()["memory"] == nil || compiled.ExportedFunctions()[name] == nil {
-			rt.Close(context.Background())
-			return nil, fmt.Errorf("invalid parser Wasm exports")
-		}
+	if err := validateExports(compiled); err != nil {
+		rt.Close(context.Background())
+		return nil, err
 	}
 	return &Runtime{runtime: rt, compiled: compiled, artifact: artifact}, nil
+}
+
+func validateExports(compiled wazero.CompiledModule) error {
+	if compiled.ExportedMemories()["memory"] == nil {
+		return fmt.Errorf("invalid parser Wasm exports")
+	}
+	for _, name := range []string{"input_ptr", "output_ptr", "configure", "parse", "configure_processor", "process"} {
+		if compiled.ExportedFunctions()[name] == nil {
+			return fmt.Errorf("invalid parser Wasm exports")
+		}
+	}
+	return nil
 }
 
 // Close releases the compiled module and all parsers created by this Runtime.
@@ -145,7 +155,6 @@ func (p *Instance) readOutput(ctx context.Context, length uint64) ([]byte, error
 }
 
 func decodeReply(output []byte, operation, buildID string) (json.RawMessage, error) {
-
 	var reply struct {
 		Document   json.RawMessage `json:"document"`
 		Result     json.RawMessage `json:"result"`

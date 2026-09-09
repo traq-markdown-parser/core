@@ -14,23 +14,8 @@ impl Renderer {
     }
 
     pub fn render(&self, doc: &Document) -> Result<String> {
-        doc.validate(ValidationLimits::default())
-            .map_err(|error| match error {
-                ValidationError::InvalidSpan | ValidationError::InvalidNode => "invalid_node",
-                ValidationError::SourceBytes | ValidationError::Nodes | ValidationError::Depth => {
-                    "resource_limit"
-                }
-            })?;
-
-        // Registration is renderer policy. Check even hidden descendants before
-        // executing any handler, after the common tree validation succeeds.
-        let mut pending: Vec<_> = doc.children.iter().collect();
-        while let Some(node) = pending.pop() {
-            if !self.preset.handlers.contains_key(&node.data_type_id()) {
-                return Err("unsupported_node");
-            }
-            pending.extend(&node.children);
-        }
+        validate_document(doc)?;
+        self.ensure_supported_nodes(&doc.children)?;
 
         Context {
             renderer: self,
@@ -38,12 +23,37 @@ impl Renderer {
         }
         .children(&doc.children)
     }
+
+    fn ensure_supported_nodes(&self, nodes: &[Node]) -> Result<()> {
+        // Registration is renderer policy. Check even hidden descendants before
+        // executing any handler, after the common tree validation succeeds.
+        let mut pending: Vec<_> = nodes.iter().collect();
+        while let Some(node) = pending.pop() {
+            if !self.preset.handlers.contains_key(&node.data_type_id()) {
+                return Err("unsupported_node");
+            }
+            pending.extend(&node.children);
+        }
+        Ok(())
+    }
+}
+
+fn validate_document(doc: &Document) -> Result<()> {
+    doc.validate(ValidationLimits::default())
+        .map_err(|error| match error {
+            ValidationError::InvalidSpan | ValidationError::InvalidNode => "invalid_node",
+            ValidationError::SourceBytes | ValidationError::Nodes | ValidationError::Depth => {
+                "resource_limit"
+            }
+        })?;
+    Ok(())
 }
 
 pub struct Context<'a> {
     renderer: &'a Renderer,
     work: Cell<usize>,
 }
+
 impl Context<'_> {
     pub fn append(&self, output: &mut String, value: &str) -> Result<()> {
         let work = self.work.get().saturating_add(value.len());
@@ -66,7 +76,8 @@ impl Context<'_> {
                 .handlers
                 .get(&node.data_type_id())
                 .ok_or("unsupported_node")?;
-            self.append(&mut output, &handler(node, self)?)?;
+            let rendered = handler(node, self)?;
+            self.append(&mut output, &rendered)?;
         }
         Ok(output)
     }

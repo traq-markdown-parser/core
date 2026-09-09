@@ -1,5 +1,8 @@
 use super::{brackets, scan::State, token::*};
-use crate::{Node, NodeKind, ParseError, engine::Budget};
+use crate::{
+    Node, NodeKind, ParseError,
+    engine::{Budget, source::SourceView},
+};
 
 pub(super) fn children_budget(nodes: &[Node], budget: &mut Budget) -> Result<(), ParseError> {
     let mut pending: Vec<_> = nodes.iter().collect();
@@ -98,14 +101,8 @@ fn apply_delimiter(
     end: usize,
     pairing: Pairing,
 ) -> Result<(), ParseError> {
-    if pairing.width == 0
-        || !(end - start).is_multiple_of(pairing.width)
-        || !state.source.text.as_bytes()[start..end]
-            .iter()
-            .all(|b| *b == pairing.marker)
-    {
-        return Err(ParseError::InternalError);
-    }
+    validate_delimiter(&state.source, start, end, pairing)?;
+
     for offset in (0..end - start).step_by(pairing.width) {
         let token = state.tokens.len();
         state.push(
@@ -128,6 +125,25 @@ fn apply_delimiter(
             end: None,
             pairing,
         });
+    }
+    Ok(())
+}
+
+fn validate_delimiter(
+    source: &SourceView,
+    start: usize,
+    end: usize,
+    pairing: Pairing,
+) -> Result<(), ParseError> {
+    if pairing.width == 0 {
+        return Err(ParseError::InternalError);
+    }
+    if !(end - start).is_multiple_of(pairing.width)
+        || !source.text.as_bytes()[start..end]
+            .iter()
+            .all(|byte| *byte == pairing.marker)
+    {
+        return Err(ParseError::InternalError);
     }
     Ok(())
 }

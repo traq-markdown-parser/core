@@ -23,18 +23,7 @@ pub fn validate_names<'a>(
     plugins: impl IntoIterator<Item = &'a Plugin>,
 ) -> Result<(), NameCollision> {
     let plugins: Vec<_> = plugins.into_iter().collect();
-
-    let mut groups: Vec<&PluginGroup> = vec![];
-    for plugin in &plugins {
-        let mut parent = plugin.namespace();
-        while let Some(group) = parent {
-            if groups.contains(&group) {
-                break;
-            }
-            groups.push(group);
-            parent = group.parent();
-        }
-    }
+    let groups = collect_groups(&plugins);
 
     let entries: Vec<_> = groups
         .iter()
@@ -48,23 +37,40 @@ pub fn validate_names<'a>(
 
     for (index, (parent, name)) in entries.iter().enumerate() {
         if entries[..index].contains(&(*parent, *name)) {
-            let mut scope = vec![];
-            let mut parent = *parent;
-            while let Some(group) = parent {
-                scope.push(group.name());
-                parent = group.parent();
-            }
-            scope.reverse();
-
             return Err(NameCollision {
-                scope: if scope.is_empty() {
-                    "<root>".into()
-                } else {
-                    scope.join("/")
-                },
+                scope: format_scope(*parent),
                 name: (*name).into(),
             });
         }
     }
     Ok(())
+}
+
+fn collect_groups<'a>(plugins: &[&'a Plugin]) -> Vec<&'a PluginGroup> {
+    let mut groups = vec![];
+    for plugin in plugins {
+        let mut parent = plugin.namespace();
+        while let Some(group) = parent {
+            if groups.contains(&group) {
+                break;
+            }
+            groups.push(group);
+            parent = group.parent();
+        }
+    }
+    groups
+}
+
+fn format_scope(mut parent: Option<&PluginGroup>) -> String {
+    let mut scope = vec![];
+    while let Some(group) = parent {
+        scope.push(group.name());
+        parent = group.parent();
+    }
+    scope.reverse();
+    if scope.is_empty() {
+        "<root>".into()
+    } else {
+        scope.join("/")
+    }
 }

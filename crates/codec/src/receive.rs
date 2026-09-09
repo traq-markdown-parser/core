@@ -8,6 +8,13 @@ use serde::{
 use serde_json::value::RawValue;
 use std::fmt;
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Position {
+    start: usize,
+    end: usize,
+}
+
 #[derive(Clone, Copy)]
 pub struct DecodeLimits {
     pub json_bytes: usize,
@@ -32,36 +39,41 @@ pub(crate) fn decode(
     limits: DecodeLimits,
     decode_kind: &dyn Fn(&str, Fields<'_>) -> serde_json::Result<NodeKind>,
 ) -> serde_json::Result<Document> {
-    if json.len() > limits.json_bytes {
-        return Err(error("json byte limit"));
-    }
+    check_json_limit(json, limits)?;
 
     let mut fields: Fields<'_> = serde_json::from_slice(json)?;
-    let source: String = Deserialize::deserialize(fields.take("source")?)?;
-    if source.len() > limits.source_bytes {
-        return Err(error("source byte limit"));
-    }
+    let source = decode_source(&mut fields, limits)?;
 
     let children = fields.take("children")?;
     fields.end()?;
+    let parent = Span {
+        start: 0,
+        end: source.len(),
+    };
     let mut state = State {
         decode_kind,
         source: &source,
         limits,
         count: 0,
     };
-    let parent = Span {
-        start: 0,
-        end: source.len(),
-    };
 
-    let children = Children {
-        state: &mut state,
-        parent,
-        depth: 1,
-    }
-    .deserialize(children)?;
+    let children = state.children(Some(children), parent, 1)?;
     Ok(Document { source, children })
+}
+
+fn check_json_limit(json: &[u8], limits: DecodeLimits) -> serde_json::Result<()> {
+    if json.len() > limits.json_bytes {
+        return Err(error("json byte limit"));
+    }
+    Ok(())
+}
+
+fn decode_source(fields: &mut Fields<'_>, limits: DecodeLimits) -> serde_json::Result<String> {
+    let source: String = Deserialize::deserialize(fields.take("source")?)?;
+    if source.len() > limits.source_bytes {
+        return Err(error("source byte limit"));
+    }
+    Ok(source)
 }
 
 struct State<'a> {
@@ -72,21 +84,35 @@ struct State<'a> {
 }
 impl State<'_> {
     fn node(&mut self, raw: &RawValue, parent: Span, depth: usize) -> serde_json::Result<Node> {
+        self.check_limits(depth)?;
+        self.count += 1;
+
+        let mut fields: Fields<'_> = Deserialize::deserialize(raw)?;
+        let span = self.span(&mut fields, parent)?;
+
+        let kind: String = Deserialize::deserialize(fields.take("kind")?)?;
+        let raw_children = fields.0.remove("children");
+        let kind = (self.decode_kind)(&kind, fields)?;
+
+        let children = self.children(raw_children, span, depth + 1)?;
+        if !kind.validate(&children) {
+            return Err(error("invalid node shape"));
+        }
+
+        Ok(Node::new(span, kind, children))
+    }
+
+    fn check_limits(&self, depth: usize) -> serde_json::Result<()> {
         if self.count >= self.limits.nodes {
             return Err(error("node limit"));
         }
         if depth > self.limits.depth {
             return Err(error("depth limit"));
         }
-        self.count += 1;
-        let mut fields: Fields<'_> = Deserialize::deserialize(raw)?;
+        Ok(())
+    }
 
-        #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
-        struct Position {
-            start: usize,
-            end: usize,
-        }
+    fn span(&self, fields: &mut Fields<'_>, parent: Span) -> serde_json::Result<Span> {
         let position: Position = Deserialize::deserialize(fields.take("span")?)?;
         let span = Span {
             start: position.start,
@@ -100,25 +126,24 @@ impl State<'_> {
         {
             return Err(error("invalid span"));
         }
+        Ok(span)
+    }
 
-        let kind: String = Deserialize::deserialize(fields.take("kind")?)?;
-        let raw_children = fields.0.remove("children");
-        let kind = (self.decode_kind)(&kind, fields)?;
-
-        let children = match raw_children {
+    fn children(
+        &mut self,
+        raw: Option<&RawValue>,
+        parent: Span,
+        depth: usize,
+    ) -> serde_json::Result<Vec<Node>> {
+        match raw {
             Some(raw) => Children {
                 state: self,
-                parent: span,
-                depth: depth + 1,
+                parent,
+                depth,
             }
-            .deserialize(raw)?,
-            None => vec![],
-        };
-        if !kind.validate(&children) {
-            return Err(error("invalid node shape"));
+            .deserialize(raw),
+            None => Ok(vec![]),
         }
-
-        Ok(Node::new(span, kind, children))
     }
 }
 

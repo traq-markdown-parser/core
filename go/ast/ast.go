@@ -22,15 +22,16 @@ type Document struct {
 	Children []Node `json:"children"`
 }
 
+type wireNode struct {
+	Kind     string            `json:"kind"`
+	Span     Span              `json:"span"`
+	Data     json.RawMessage   `json:"data"`
+	Children []json.RawMessage `json:"children"`
+}
+
 // DecodeDocument uses the distribution's node factories without global registration.
 // Unknown kinds are errors; decoding never silently drops a Rust node.
 func DecodeDocument(raw []byte, factory func(string) Payload) (*Document, error) {
-	type wireNode struct {
-		Kind     string            `json:"kind"`
-		Span     Span              `json:"span"`
-		Data     json.RawMessage   `json:"data"`
-		Children []json.RawMessage `json:"children"`
-	}
 	var wire struct {
 		Source   string            `json:"source"`
 		Children []json.RawMessage `json:"children"`
@@ -38,32 +39,34 @@ func DecodeDocument(raw []byte, factory func(string) Payload) (*Document, error)
 	if err := json.Unmarshal(raw, &wire); err != nil {
 		return nil, err
 	}
-	var decode func([]json.RawMessage) ([]Node, error)
-	decode = func(items []json.RawMessage) ([]Node, error) {
-		nodes := make([]Node, len(items))
-		for i, raw := range items {
-			var value wireNode
-			if err := json.Unmarshal(raw, &value); err != nil {
-				return nil, err
-			}
-			payload := factory(value.Kind)
-			if payload == nil {
-				return nil, fmt.Errorf("unsupported Rust node: %s", value.Kind)
-			}
-			if err := json.Unmarshal(value.Data, payload); err != nil {
-				return nil, err
-			}
-			children, err := decode(value.Children)
-			if err != nil {
-				return nil, err
-			}
-			nodes[i] = Node{Kind: value.Kind, Span: value.Span, Data: payload, Children: children}
-		}
-		return nodes, nil
-	}
-	children, err := decode(wire.Children)
+	children, err := decodeNodes(wire.Children, factory)
 	if err != nil {
 		return nil, err
 	}
 	return &Document{Source: wire.Source, Children: children}, nil
+}
+
+func decodeNodes(items []json.RawMessage, factory func(string) Payload) ([]Node, error) {
+	nodes := make([]Node, len(items))
+	for i, raw := range items {
+		var value wireNode
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return nil, err
+		}
+
+		payload := factory(value.Kind)
+		if payload == nil {
+			return nil, fmt.Errorf("unsupported Rust node: %s", value.Kind)
+		}
+		if err := json.Unmarshal(value.Data, payload); err != nil {
+			return nil, err
+		}
+
+		children, err := decodeNodes(value.Children, factory)
+		if err != nil {
+			return nil, err
+		}
+		nodes[i] = Node{Kind: value.Kind, Span: value.Span, Data: payload, Children: children}
+	}
+	return nodes, nil
 }

@@ -89,47 +89,8 @@ pub(crate) fn parse(
 
     while state.position < source.text.len() {
         state.budget.spend(1)?;
-        let mut found = None;
-        for &key in &grammar.data.dispatch[source.text.as_bytes()[state.position] as usize] {
-            let rule = &grammar.data.inline[key];
-            let input = InlineInput {
-                source,
-                position: state.position,
-                references,
-                bracket: state.brackets.last().map(|b| b.info),
-                inside_brackets: !state.brackets.is_empty(),
-                trailing_text: match state.tokens.last() {
-                    Some(Token {
-                        kind: TokenKind::Text(value),
-                        ..
-                    }) => value,
-                    _ => "",
-                },
-            };
-            if let Some(result) = (rule.data.implementation.parse)(&input, state.budget)? {
-                found = Some((key, result));
-                break;
-            }
-        }
-        let (key, result) = found.unwrap_or_else(|| {
-            (
-                0,
-                InlineMatch::literal(
-                    state.position
-                        + source.text[state.position..]
-                            .chars()
-                            .next()
-                            .unwrap()
-                            .len_utf8(),
-                ),
-            )
-        });
-        if result.end <= state.position
-            || result.end > source.text.len()
-            || !source.text.is_char_boundary(result.end)
-        {
-            return Err(ParseError::InternalError);
-        }
+        let (key, result) = find_match(&mut state, grammar, references)?;
+        validate_match(source, state.position, &result)?;
 
         apply::matched(&mut state, key, result)?;
     }
@@ -137,4 +98,54 @@ pub(crate) fn parse(
     delimiters::balance(&mut state.tokens, &mut state.delimiters, state.budget)?;
     let tokens = text::process(state.tokens, source, grammar, state.budget)?;
     tree::build(tokens, source, state.make_text, state.budget)
+}
+
+fn find_match(
+    state: &mut State<'_, '_>,
+    grammar: &Grammar,
+    references: &References,
+) -> Result<(usize, InlineMatch), ParseError> {
+    let candidates = &grammar.data.dispatch[state.source.text.as_bytes()[state.position] as usize];
+    for &key in candidates {
+        let rule = &grammar.data.inline[key];
+        let input = InlineInput {
+            source: state.source,
+            position: state.position,
+            references,
+            bracket: state.brackets.last().map(|b| b.info),
+            inside_brackets: !state.brackets.is_empty(),
+            trailing_text: match state.tokens.last() {
+                Some(Token {
+                    kind: TokenKind::Text(value),
+                    ..
+                }) => value,
+                _ => "",
+            },
+        };
+        if let Some(result) = (rule.data.implementation.parse)(&input, state.budget)? {
+            return Ok((key, result));
+        }
+    }
+
+    let end = state.position
+        + state.source.text[state.position..]
+            .chars()
+            .next()
+            .expect("position is within source")
+            .len_utf8();
+    Ok((0, InlineMatch::literal(end)))
+}
+
+fn validate_match(
+    source: &SourceView,
+    position: usize,
+    result: &InlineMatch,
+) -> Result<(), ParseError> {
+    if result.end <= position
+        || result.end > source.text.len()
+        || !source.text.is_char_boundary(result.end)
+    {
+        return Err(ParseError::InternalError);
+    }
+    Ok(())
 }

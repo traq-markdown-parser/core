@@ -141,25 +141,32 @@ impl GrammarBuilder {
             dispatch: std::array::from_fn(|_| vec![]),
         };
 
-        for (_, rule) in &grammar.definition.rules {
-            match rule {
-                Contribution::Inline(r) => grammar.inline.push(r.clone()),
-                Contribution::Block(r) => grammar.block.push(r.clone()),
-                Contribution::Text(r) => grammar.text.push(r.clone()),
-            }
-        }
-
-        for (index, rule) in grammar.inline.iter().enumerate() {
-            let markers = rule.data.implementation.markers;
-            for (byte, candidates) in grammar.dispatch.iter_mut().enumerate() {
-                if markers.is_empty() || markers.contains(&(byte as u8)) {
-                    candidates.push(index);
-                }
-            }
-        }
+        compile_rules(&mut grammar);
+        compile_dispatch(&mut grammar);
 
         Ok(Grammar {
             data: std::sync::Arc::new(grammar),
         })
+    }
+}
+
+fn compile_rules(grammar: &mut super::registry::CompiledGrammar) {
+    for (_, rule) in &grammar.definition.rules {
+        match rule {
+            Contribution::Inline(rule) => grammar.inline.push(rule.clone()),
+            Contribution::Block(rule) => grammar.block.push(rule.clone()),
+            Contribution::Text(rule) => grammar.text.push(rule.clone()),
+        }
+    }
+}
+
+fn compile_dispatch(grammar: &mut super::registry::CompiledGrammar) {
+    for (index, rule) in grammar.inline.iter().enumerate() {
+        let markers = rule.data.implementation.markers;
+        for (byte, candidates) in grammar.dispatch.iter_mut().enumerate() {
+            if markers.is_empty() || markers.contains(&(byte as u8)) {
+                candidates.push(index);
+            }
+        }
     }
 }

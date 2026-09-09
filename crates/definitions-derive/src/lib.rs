@@ -25,20 +25,12 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
 
     let name = &input.ident;
     let label = name.unraw().to_string();
-    let arguments: Vec<_> = input.generics.params.iter().filter_map(|parameter| {
-        match parameter {
-            GenericParam::Type(p) => {
-                let ty = &p.ident;
-                Some(quote!(<#ty as #path::NodeType>::type_key()))
-            }
-            GenericParam::Const(p) => {
-                let value = &p.ident;
-                Some(quote!(::std::string::ToString::to_string(&#value)
-                    .chars().flat_map(::core::primitive::char::escape_default).collect::<::std::string::String>()))
-            }
-            GenericParam::Lifetime(_) => None,
-        }
-    }).collect();
+    let arguments: Vec<_> = input
+        .generics
+        .params
+        .iter()
+        .filter_map(|parameter| generic_argument(parameter, &path))
+        .collect();
 
     let body = if arguments.is_empty() {
         quote!(::std::string::String::from(
@@ -69,4 +61,22 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
             fn type_key() -> ::std::string::String { #body }
         }
     })
+}
+
+fn generic_argument(
+    parameter: &GenericParam,
+    path: &proc_macro2::TokenStream,
+) -> Option<proc_macro2::TokenStream> {
+    match parameter {
+        GenericParam::Type(parameter) => {
+            let ty = &parameter.ident;
+            Some(quote!(<#ty as #path::NodeType>::type_key()))
+        }
+        GenericParam::Const(parameter) => {
+            let value = &parameter.ident;
+            Some(quote!(::std::string::ToString::to_string(&#value)
+                .chars().flat_map(::core::primitive::char::escape_default).collect::<::std::string::String>()))
+        }
+        GenericParam::Lifetime(_) => None,
+    }
 }
