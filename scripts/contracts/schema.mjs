@@ -24,8 +24,12 @@ export function shape(schema, root = schema, references = new Set()) {
   }
 
   if (schema.anyOf || Array.isArray(schema.type)) {
-    keys(schema, schema.anyOf ? ["anyOf"] : ["type"]);
-    const variants = schema.anyOf ?? schema.type.map((type) => ({ type }));
+    if (schema.anyOf) {
+      keys(schema, ["anyOf"]);
+    }
+    const variants = schema.anyOf ?? schema.type.map((type) =>
+      type === "null" ? { type } : { ...schema, type },
+    );
     const real = variants.filter((s) => s.type !== "null");
     if (variants.length !== 2 || real.length !== 1)
       throw new Error("Only nullable unions are supported");
