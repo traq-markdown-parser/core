@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
@@ -49,7 +50,7 @@ func validateExports(compiled wazero.CompiledModule) error {
 	if compiled.ExportedMemories()["memory"] == nil {
 		return fmt.Errorf("invalid parser Wasm exports")
 	}
-	for _, name := range []string{"input_ptr", "output_ptr", "configure", "parse", "configure_processor", "process"} {
+	for _, name := range []string{"input_ptr", "output_ptr", "configure", "parse"} {
 		if compiled.ExportedFunctions()[name] == nil {
 			return fmt.Errorf("invalid parser Wasm exports")
 		}
@@ -168,7 +169,7 @@ func decodeReply(output []byte, operation, buildID string) (json.RawMessage, err
 	if reply.Error != nil {
 		return nil, fmt.Errorf("markdown: %s", reply.Error)
 	}
-	if (operation == "configure" || operation == "configure_processor") && reply.Configured != buildID {
+	if strings.HasPrefix(operation, "configure") && reply.Configured != buildID {
 		return nil, fmt.Errorf("Wasm does not match this SDK build")
 	}
 

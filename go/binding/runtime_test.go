@@ -20,3 +20,12 @@ func TestCanceledWaitDoesNotTakeInstance(t *testing.T) {
 		t.Fatal("canceled waiter changed the instance gate")
 	}
 }
+
+func TestRendererConfigurationChecksBuildIdentity(t *testing.T) {
+	if _, err := decodeReply([]byte(`{"configured":"another-build"}`), "configure_renderer", "expected-build"); err == nil {
+		t.Fatal("accepted a renderer from another build")
+	}
+	if _, err := decodeReply([]byte(`{"configured":"expected-build"}`), "configure_renderer", "expected-build"); err != nil {
+		t.Fatal(err)
+	}
+}
