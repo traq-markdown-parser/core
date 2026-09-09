@@ -21,7 +21,13 @@ const fields = (s) =>
     .join("\n");
 
 export function goContract(schema, root = schema) {
-  return `type ${typeName(schema)} struct {\n${fields(shape(schema, root))}\n}\n`;
+  const contract = shape(schema, root);
+
+  if (contract.kind === "enum") {
+    return `type ${typeName(schema)} = string\n`;
+  }
+
+  return `type ${typeName(schema)} struct {\n${fields(contract)}\n}\n`;
 }
 
 export function goPayload(wireName, schema) {
