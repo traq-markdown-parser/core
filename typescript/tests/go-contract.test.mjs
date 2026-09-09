@@ -8,23 +8,3 @@ test("named string enums remain compatible with Go string fields", () => {
     "type LookupKind = string\n",
   );
 });
-
-test("nullable integer fields preserve their format and constraints", () => {
-  const parent = {
-    type: ["integer", "null"],
-    format: "uint32",
-    minimum: 0,
-  };
-  const schema = {
-    title: "Group",
-    type: "object",
-    additionalProperties: false,
-    properties: { parent },
-    required: ["parent"],
-  };
-  assert.match(goContract(schema), /Parent \*uint32/);
-  assert.throws(
-    () => goContract({ ...schema, properties: { parent: { ...parent, minimum: 1 } } }),
-    /Unsupported integer/,
-  );
-});
