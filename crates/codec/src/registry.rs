@@ -2,12 +2,15 @@ use crate::{
     DecodeLimits,
     fields::{Fields, error},
 };
+
 use markdown_ast::{Document, NodeData, NodeKind};
 use markdown_definitions::NodeType;
+
 use serde::{
     Deserialize, Serialize,
     de::{DeserializeOwned, value::MapDeserializer},
 };
+
 use std::{any::TypeId, collections::HashMap};
 
 pub(crate) struct Entry {
@@ -32,12 +35,14 @@ impl Codec {
         if name.is_empty() || name.chars().any(char::is_control) {
             return Err("invalid node type key");
         }
+
         let id = TypeId::of::<T>();
         if self.entries.contains_key(&id) || self.names.contains_key(&name) {
             return Err("duplicate Rust type or wire contract");
         }
 
         self.names.insert(name.clone(), id);
+
         self.entries.insert(
             id,
             Entry {
@@ -48,15 +53,18 @@ impl Codec {
                 },
             },
         );
+
         Ok(())
     }
 
     pub fn encode(&self, document: &Document) -> serde_json::Result<Vec<u8>> {
         crate::output::encode(document, self)
     }
+
     pub fn decode(&self, json: &[u8]) -> serde_json::Result<Document> {
         self.decode_with_limits(json, DecodeLimits::default())
     }
+
     pub fn decode_with_limits(
         &self,
         json: &[u8],
@@ -67,7 +75,9 @@ impl Codec {
                 .names
                 .get(name)
                 .ok_or_else(|| error("unknown contract"))?;
+
             let raw = fields.take("data")?;
+
             fields.end()?;
             (self.entries[id].decode)(Deserialize::deserialize(raw)?)
         })

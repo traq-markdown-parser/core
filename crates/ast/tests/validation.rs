@@ -22,6 +22,7 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
             vec![leaf(0, 3), leaf(3, 4)],
         )],
     };
+
     let limits = ValidationLimits {
         source_bytes: 4,
         nodes: 3,
@@ -29,6 +30,7 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
     };
 
     assert_eq!(doc.validate(limits), Ok(3));
+
     for (limits, error) in [
         (
             ValidationLimits {
@@ -42,6 +44,7 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
     ] {
         assert_eq!(doc.validate(limits), Err(error));
     }
+
     doc.children[0].children[1].get_mut::<Data>().unwrap().0 = false;
     assert_eq!(doc.validate(limits), Err(Error::InvalidNode));
     doc.children[0].children[1].get_mut::<Data>().unwrap().0 = true;
@@ -50,8 +53,10 @@ fn whole_document_validation_counts_descendants_and_observes_edits() {
         doc.children[0].children[1].span = Span { start, end };
         assert_eq!(doc.validate(limits), Err(Error::InvalidSpan));
     }
+
     doc.children[0].span = Span { start: 0, end: 3 };
     doc.children[0].children[1] = leaf(3, 4);
+
     assert_eq!(doc.validate(limits), Err(Error::InvalidSpan));
 }
 
@@ -62,17 +67,22 @@ fn empty_trees_allow_zero_limits_and_deep_trees_do_not_recurse() {
         nodes: 0,
         depth: 0,
     };
+
     let mut doc = Document {
         source: String::new(),
         children: vec![],
     };
+
     assert_eq!(doc.validate(limits), Ok(0));
     doc.children.push(leaf(0, 0));
+
     assert_eq!(doc.validate(limits), Err(Error::Nodes));
+
     assert_eq!(
         doc.validate(ValidationLimits { nodes: 1, ..limits }),
         Err(Error::Depth)
     );
+
     for _ in 1..128 {
         doc.children = vec![Node::new(
             Span { start: 0, end: 0 },
@@ -80,7 +90,9 @@ fn empty_trees_allow_zero_limits_and_deep_trees_do_not_recurse() {
             doc.children,
         )];
     }
+
     assert_eq!(doc.validate(ValidationLimits::default()), Err(Error::Depth));
+
     assert_eq!(
         doc.validate(ValidationLimits {
             depth: 128,

@@ -11,12 +11,14 @@ pub struct RuleSpec {
     pub name: Option<String>,
     pub phase: &'static str,
 }
+
 #[derive(Serialize)]
 pub struct PresetSpec {
     pub description: String,
     pub plugins: Vec<usize>,
     pub order: Vec<usize>,
 }
+
 #[derive(Default)]
 pub struct Catalog {
     pub(super) groups: Vec<PluginGroup>,
@@ -31,6 +33,7 @@ impl Catalog {
         if let Some(index) = self.groups.iter().position(|g| g == group) {
             return index;
         }
+
         if let Some(parent) = group.parent() {
             self.group(parent);
         }
@@ -38,10 +41,12 @@ impl Catalog {
         self.groups.push(group.clone());
         self.groups.len() - 1
     }
+
     pub fn plugin(&mut self, plugin: &Plugin) -> usize {
         if let Some(index) = self.plugins.iter().position(|p| p.same(plugin)) {
             return index;
         }
+
         if let Some(group) = plugin.namespace() {
             self.group(group);
         }
@@ -55,6 +60,7 @@ impl Catalog {
         self.plugins.push(plugin.clone());
         self.plugins.len() - 1
     }
+
     pub fn preset(
         &mut self,
         definition: &GrammarBuilder,
@@ -65,6 +71,7 @@ impl Catalog {
 
         let description = definition.describe();
         let plugins = definition.plugins.iter().map(|p| self.plugin(p)).collect();
+
         let order = definition
             .rules
             .iter()
@@ -76,14 +83,17 @@ impl Catalog {
             order,
             description,
         });
+
         Ok(self.presets.len() - 1)
     }
+
     fn rule_index(&self, rule: &Contribution) -> usize {
         self.rules
             .iter()
             .position(|r| r.same(rule))
             .expect("registered rule")
     }
+
     pub fn preset_composition(&self, index: usize) -> Option<Composition> {
         let preset = self.presets.get(index)?;
 
@@ -97,6 +107,7 @@ impl Catalog {
             order: preset.order.clone(),
         })
     }
+
     fn group_specs(&self) -> Vec<GroupSpec> {
         self.groups
             .iter()
@@ -111,6 +122,7 @@ impl Catalog {
             })
             .collect()
     }
+
     fn plugin_spec(&self, plugin: &Plugin) -> PluginSpec {
         PluginSpec {
             group: plugin.namespace().map(|g| {
@@ -119,13 +131,16 @@ impl Catalog {
                     .position(|p| p == g)
                     .expect("registered namespace")
             }),
+
             name: Some(plugin.name().to_owned()),
+
             rules: plugin
                 .definition
                 .rules
                 .iter()
                 .map(|r| self.rule_index(r))
                 .collect(),
+
             text: if plugin.definition.text.is_empty() {
                 vec![]
             } else {
@@ -153,6 +168,7 @@ impl Catalog {
             .iter()
             .map(|p| self.plugin_spec(p))
             .collect::<Vec<_>>();
+
         serde_json::json!({
             "groups": self.group_specs(), "plugins": plugins, "rules": rules,
             "presets": self.presets, "exports": self.exports,

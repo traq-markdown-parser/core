@@ -43,6 +43,7 @@ impl SourceView {
         // Child views copy context handles, not the extension-owned values.
         self.text.len() + self.tabs.len() * 2 + self.context.len()
     }
+
     pub(crate) fn select(&self, ranges: &[std::ops::Range<usize>]) -> Self {
         let mut text = String::new();
         let mut offsets = vec![0];
@@ -58,6 +59,7 @@ impl SourceView {
             text.push_str(&self.text[range.clone()]);
             offsets.extend_from_slice(&self.offsets[range.start + 1..=range.end]);
         }
+
         Self {
             context: self.context.clone(),
             text,
@@ -83,6 +85,7 @@ impl SourceView {
                 let width = 4 - column % 4;
                 tabs.push(text.len()..text.len() + width);
                 text.extend(std::iter::repeat_n(' ', width));
+
                 offsets.extend(std::iter::repeat_n(self.offsets[pos], width - 1));
                 offsets.push(self.offsets[pos + 1]);
                 column += width;
@@ -92,6 +95,7 @@ impl SourceView {
                 column = if ch == '\n' { 0 } else { column + 1 };
             }
         }
+
         Self {
             context: self.context.clone(),
             text,
@@ -102,9 +106,11 @@ impl SourceView {
 
     pub fn literal(&self, range: Range<usize>) -> Cow<'_, str> {
         let mut tabs = self.tabs_in(&range).peekable();
+
         if tabs.peek().is_none() {
             return Cow::Borrowed(&self.text[range.clone()]);
         }
+
         let mut text = String::new();
         let mut pos = range.start;
 
@@ -113,6 +119,7 @@ impl SourceView {
             text.push('\t');
             pos = tab.end;
         }
+
         text.push_str(&self.text[pos..range.end]);
         Cow::Owned(text)
     }
@@ -121,6 +128,7 @@ impl SourceView {
         if self.tabs.is_empty() {
             return self;
         }
+
         let mut text = String::new();
         let mut offsets = vec![self.offsets[0]];
         let mut pos = 0;
@@ -132,8 +140,10 @@ impl SourceView {
             offsets.push(self.offsets[tab.end]);
             pos = tab.end;
         }
+
         text.push_str(&self.text[pos..]);
         offsets.extend_from_slice(&self.offsets[pos + 1..]);
+
         Self {
             context: self.context,
             text,
@@ -159,16 +169,19 @@ impl SourceView {
                     text.push('\n');
                     offsets.push(end);
                 }
+
                 '\0' => {
                     text.push('\u{fffd}');
                     offsets.extend([start, start, start + 1]);
                 }
+
                 _ => {
                     text.push(ch);
                     offsets.extend(start + 1..=start + ch.len_utf8());
                 }
             }
         }
+
         Self {
             context: vec![],
             text,
@@ -181,6 +194,7 @@ impl SourceView {
         debug_assert!(
             start <= end && self.text.is_char_boundary(start) && self.text.is_char_boundary(end)
         );
+
         Span {
             start: self.offsets[start],
             end: self.offsets[end],

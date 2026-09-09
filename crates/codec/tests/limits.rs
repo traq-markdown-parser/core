@@ -46,6 +46,7 @@ fn bounded_input_and_output_accept_the_boundary() {
         depth: 1,
     };
     assert_eq!(codec.decode_with_limits(&bytes, limits).unwrap(), document);
+
     for lower in [
         DecodeLimits {
             json_bytes: bytes.len() - 1,
@@ -60,14 +61,17 @@ fn bounded_input_and_output_accept_the_boundary() {
     ] {
         assert!(codec.decode_with_limits(&bytes, lower).is_err());
     }
+
     document.children[0].span.start = 1;
     assert!(codec.encode(&document).is_err());
     let text = String::from_utf8(bytes).unwrap();
+
     assert!(
         codec
             .decode(text.replace("\"start\":0", "\"start\":1").as_bytes())
             .is_err()
     );
+
     let at_limit = codec.decode(deep_json(64).as_bytes()).unwrap();
 
     assert!(codec.encode(&at_limit).is_ok());
@@ -80,12 +84,14 @@ fn bounded_input_and_output_accept_the_boundary() {
                 .contains("depth limit")
         );
     }
+
     let mut too_deep = at_limit;
     too_deep.children = vec![Node::new(
         Span { start: 0, end: 0 },
         Paragraph {},
         too_deep.children,
     )];
+
     assert!(codec.encode(&too_deep).is_err());
     document.children = vec![Node::leaf(
         span,
@@ -93,6 +99,7 @@ fn bounded_input_and_output_accept_the_boundary() {
             value: "x".repeat(8 * 1024 * 1024),
         },
     )];
+
     assert!(
         codec
             .encode(&document)
@@ -114,6 +121,7 @@ fn ambiguous_or_unknown_input_is_rejected() {
             )],
         })
         .unwrap();
+
     let json = String::from_utf8(doc).unwrap();
     for bad in [
         json.replace("\"source\":\"\"", "\"source\":\"\",\"source\":\"\""),
@@ -126,5 +134,6 @@ fn ambiguous_or_unknown_input_is_rejected() {
     ] {
         assert!(codec.decode(bad.as_bytes()).is_err());
     }
+
     assert!(codec.decode(&[0xff]).is_err());
 }

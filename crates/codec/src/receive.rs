@@ -1,10 +1,12 @@
 //! Bounded document framing; the caller supplies payload decoding.
 use crate::fields::{Fields, error};
 use markdown_ast::{Document, Node, NodeKind, Span};
+
 use serde::{
     Deserialize, Deserializer,
     de::{DeserializeSeed, Error, SeqAccess, Visitor},
 };
+
 use serde_json::value::RawValue;
 use std::fmt;
 
@@ -46,10 +48,12 @@ pub(crate) fn decode(
 
     let children = fields.take("children")?;
     fields.end()?;
+
     let parent = Span {
         start: 0,
         end: source.len(),
     };
+
     let mut state = State {
         decode_kind,
         source: &source,
@@ -65,14 +69,17 @@ fn check_json_limit(json: &[u8], limits: DecodeLimits) -> serde_json::Result<()>
     if json.len() > limits.json_bytes {
         return Err(error("json byte limit"));
     }
+
     Ok(())
 }
 
 fn decode_source(fields: &mut Fields<'_>, limits: DecodeLimits) -> serde_json::Result<String> {
     let source: String = Deserialize::deserialize(fields.take("source")?)?;
+
     if source.len() > limits.source_bytes {
         return Err(error("source byte limit"));
     }
+
     Ok(source)
 }
 
@@ -106,18 +113,22 @@ impl State<'_> {
         if self.count >= self.limits.nodes {
             return Err(error("node limit"));
         }
+
         if depth > self.limits.depth {
             return Err(error("depth limit"));
         }
+
         Ok(())
     }
 
     fn span(&self, fields: &mut Fields<'_>, parent: Span) -> serde_json::Result<Span> {
         let position: Position = Deserialize::deserialize(fields.take("span")?)?;
+
         let span = Span {
             start: position.start,
             end: position.end,
         };
+
         if span.start > span.end
             || span.start < parent.start
             || span.end > parent.end
@@ -126,6 +137,7 @@ impl State<'_> {
         {
             return Err(error("invalid span"));
         }
+
         Ok(span)
     }
 
@@ -156,6 +168,7 @@ struct Children<'a, 'b> {
 }
 impl<'de> DeserializeSeed<'de> for Children<'_, '_> {
     type Value = Vec<Node>;
+
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Vec<Node>, D::Error> {
         deserializer.deserialize_seq(self)
     }
@@ -163,11 +176,14 @@ impl<'de> DeserializeSeed<'de> for Children<'_, '_> {
 
 impl<'de> Visitor<'de> for Children<'_, '_> {
     type Value = Vec<Node>;
+
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("child nodes")
     }
+
     fn visit_seq<S: SeqAccess<'de>>(self, mut sequence: S) -> Result<Vec<Node>, S::Error> {
         let mut nodes = Vec::new();
+
         while let Some(raw) = sequence.next_element::<&RawValue>()? {
             nodes.push(
                 self.state
@@ -175,6 +191,7 @@ impl<'de> Visitor<'de> for Children<'_, '_> {
                     .map_err(S::Error::custom)?,
             );
         }
+
         Ok(nodes)
     }
 }

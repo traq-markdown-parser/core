@@ -3,6 +3,7 @@ use super::{
     block::BlockRule,
     inline::{InlineRule, TextRule},
 };
+
 use markdown_ast::{NodeData, NodeKind};
 use std::sync::Arc;
 
@@ -28,6 +29,7 @@ impl Plugin {
             declaration: declaration.clone(),
         }
     }
+
     pub fn name(&self) -> &str {
         self.declaration.name()
     }
@@ -82,6 +84,7 @@ impl Plugin {
             }
         })
     }
+
     pub(crate) fn same(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.definition, &other.definition)
     }
@@ -97,10 +100,12 @@ impl Plugin {
 pub(crate) fn group_description(group: &PluginGroup) -> String {
     let mut names = vec![group.name()];
     let mut parent = group.parent();
+
     while let Some(group) = parent {
         names.push(group.name());
         parent = group.parent();
     }
+
     names.reverse();
     names.join("/")
 }

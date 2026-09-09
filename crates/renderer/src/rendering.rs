@@ -28,12 +28,14 @@ impl Renderer {
         // Registration is renderer policy. Check even hidden descendants before
         // executing any handler, after the common tree validation succeeds.
         let mut pending: Vec<_> = nodes.iter().collect();
+
         while let Some(node) = pending.pop() {
             if !self.preset.handlers.contains_key(&node.data_type_id()) {
                 return Err("unsupported_node");
             }
             pending.extend(&node.children);
         }
+
         Ok(())
     }
 }
@@ -61,8 +63,10 @@ impl Context<'_> {
         if output.len().saturating_add(value.len()) > 1_048_576 || work > 8_388_608 {
             return Err("resource_limit");
         }
+
         self.work.set(work);
         output.push_str(value);
+
         Ok(())
     }
 
@@ -79,6 +83,7 @@ impl Context<'_> {
             let rendered = handler(node, self)?;
             self.append(&mut output, &rendered)?;
         }
+
         Ok(output)
     }
 }

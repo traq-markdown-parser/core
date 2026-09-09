@@ -9,6 +9,7 @@ mod plugin;
 mod registry;
 mod rule;
 pub mod source;
+
 #[cfg(test)]
 mod tests;
 

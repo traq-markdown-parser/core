@@ -5,6 +5,7 @@ pub struct Parser {
     grammar: Grammar,
     limits: Limits,
 }
+
 impl Parser {
     pub fn new(grammar: &Grammar) -> Self {
         Self {
@@ -12,13 +13,16 @@ impl Parser {
             limits: Limits::default(),
         }
     }
+
     pub fn with_limits(mut self, limits: Limits) -> Self {
         self.limits = limits;
         self
     }
+
     pub fn parse(&self, source: &str) -> Result<Document, ParseError> {
         self.run(source, false)
     }
+
     pub fn parse_inline(&self, source: &str) -> Result<Document, ParseError> {
         self.run(source, true)
     }
@@ -28,6 +32,7 @@ impl Parser {
         if source.len() > self.limits.input_bytes {
             return Err(ParseError::limit("input_bytes"));
         }
+
         let view = SourceView::new(source);
         let mut budget = Budget::new(self.limits);
 
@@ -36,12 +41,14 @@ impl Parser {
         } else {
             block::parse(&view, grammar, &mut budget)?
         };
+
         let document = Document {
             source: source.into(),
             children,
         };
 
         let remaining_work = budget.remaining_work();
+
         let node_count = document
             .validate(ValidationLimits {
                 source_bytes: self.limits.input_bytes,
@@ -61,6 +68,7 @@ impl Parser {
             })?;
 
         budget.spend(node_count)?;
+
         Ok(document)
     }
 }

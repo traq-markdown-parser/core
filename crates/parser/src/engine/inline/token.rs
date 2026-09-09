@@ -21,28 +21,35 @@ pub struct InlineMatch {
 pub enum InlineAction {
     /// Literal source, still eligible for registered text rules.
     Literal,
+
     /// Decoded display text. Bypasses text rules and joins adjacent text before node creation.
     Text(String),
+
     Node {
         kind: NodeKind,
         children: Vec<Node>,
         inhibit_brackets: bool,
     },
+
     /// Remove trailing literal bytes before emitting a node, e.g. a hard break.
     TrimmedNode {
         trim: usize,
         kind: NodeKind,
     },
+
     Delimiter(Pairing),
+
     OpenBracket {
         tag: &'static str,
         inhibit_on_inner: bool,
     },
+
     CloseBracket {
         kind: NodeKind,
         prefix: usize,
         inhibit_brackets: bool,
     },
+
     DiscardBracket,
 }
 
@@ -89,11 +96,13 @@ pub(super) enum TokenKind {
     Close,
     Empty,
 }
+
 pub(super) struct Token {
     pub start: usize,
     pub end: usize,
     pub kind: TokenKind,
 }
+
 #[derive(Clone, Copy)]
 pub(super) struct Delimiter {
     pub key: (usize, u8),
@@ -104,6 +113,7 @@ pub(super) struct Delimiter {
     pub end: Option<usize>,
     pub pairing: Pairing,
 }
+
 pub(super) struct Bracket {
     pub token: usize,
     pub bottom: usize,

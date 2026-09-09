@@ -4,6 +4,7 @@ use super::{
     scan::TextInput,
     token::{Token, TokenKind},
 };
+
 use crate::{
     ParseError,
     engine::{Budget, Grammar, source::SourceView},
@@ -20,6 +21,7 @@ pub(super) fn process(
     for entry in &grammar.data.text {
         joined = process_rule(joined, source, entry, budget)?;
     }
+
     Ok(joined)
 }
 
@@ -30,9 +32,11 @@ fn join_text_tokens(tokens: Vec<Token>) -> Vec<Token> {
         if let TokenKind::Marker(value) = token.kind {
             token.kind = TokenKind::Text(value);
         }
+
         if matches!(token.kind, TokenKind::Empty) {
             continue;
         }
+
         if let TokenKind::Text(value) = &token.kind
             && let Some(Token {
                 end,
@@ -45,8 +49,10 @@ fn join_text_tokens(tokens: Vec<Token>) -> Vec<Token> {
             *end = token.end;
             continue;
         }
+
         joined.push(token);
     }
+
     joined
 }
 
@@ -58,6 +64,7 @@ fn process_rule(
 ) -> Result<Vec<Token>, ParseError> {
     let mut result = vec![];
     let mut special = false;
+
     for token in tokens {
         let TokenKind::Text(ref value) = token.kind else {
             special = matches!(token.kind, TokenKind::Decoded(_));
@@ -65,13 +72,16 @@ fn process_rule(
             continue;
         };
         budget.spend(value.len())?;
+
         let input = TextInput {
             source,
             range: token.start..token.end,
             after_decoded_text: special,
         };
+
         let matches = (entry.data.implementation.parse)(&input, budget)?;
         let mut begin = token.start;
+
         for found in matches {
             if found.start < begin
                 || found.start >= found.end
@@ -81,6 +91,7 @@ fn process_rule(
             {
                 return Err(ParseError::InternalError);
             }
+
             if found.start > begin {
                 budget.token()?;
                 result.push(Token {
@@ -89,15 +100,19 @@ fn process_rule(
                     kind: TokenKind::Text(source.text[begin..found.start].into()),
                 });
             }
+
             budget.token()?;
             children_budget(&found.children, budget)?;
+
             result.push(Token {
                 start: found.start,
                 end: found.end,
                 kind: TokenKind::Atom(found.kind, found.children),
             });
+
             begin = found.end;
         }
+
         if begin < token.end {
             result.push(Token {
                 start: begin,
@@ -105,7 +120,9 @@ fn process_rule(
                 kind: TokenKind::Text(source.text[begin..token.end].into()),
             });
         }
+
         special = false;
     }
+
     Ok(result)
 }

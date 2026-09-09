@@ -1,4 +1,5 @@
 use super::{brackets, scan::State, token::*};
+
 use crate::{
     Node, NodeKind, ParseError,
     engine::{Budget, source::SourceView},
@@ -20,27 +21,34 @@ pub(super) fn matched(
 ) -> Result<(), ParseError> {
     let start = state.position;
     let end = found.end;
+
     match found.action {
         InlineAction::Literal => state.literal(end)?,
         InlineAction::Text(value) => state.push(start, end, TokenKind::Decoded(value))?,
+
         InlineAction::Node {
             kind,
             children,
             inhibit_brackets,
         } => apply_node(state, start, end, kind, children, inhibit_brackets)?,
+
         InlineAction::TrimmedNode { trim, kind } => {
             apply_trimmed_node(state, start, end, trim, kind)?
         }
+
         InlineAction::Delimiter(pairing) => apply_delimiter(state, key, start, end, pairing)?,
+
         InlineAction::OpenBracket {
             tag,
             inhibit_on_inner,
         } => open_bracket(state, start, end, tag, inhibit_on_inner)?,
+
         InlineAction::CloseBracket {
             kind,
             prefix,
             inhibit_brackets,
         } => brackets::close(state, end, kind, prefix, inhibit_brackets)?,
+
         InlineAction::DiscardBracket => {
             state.brackets.pop();
             state.literal(end)?;
@@ -48,6 +56,7 @@ pub(super) fn matched(
     }
 
     state.position = end;
+
     Ok(())
 }
 
@@ -60,10 +69,13 @@ fn apply_node(
     inhibit_brackets: bool,
 ) -> Result<(), ParseError> {
     children_budget(&children, state.budget)?;
+
     state.push(start, end, TokenKind::Atom(kind, children))?;
+
     if inhibit_brackets {
         brackets::inhibit(state);
     }
+
     Ok(())
 }
 
@@ -75,6 +87,7 @@ fn apply_trimmed_node(
     kind: NodeKind,
 ) -> Result<(), ParseError> {
     let mut node_start = start;
+
     if trim > 0 {
         let Some(Token {
             end: previous_end,
@@ -84,13 +97,16 @@ fn apply_trimmed_node(
         else {
             return Err(ParseError::InternalError);
         };
+
         if trim > value.len() || trim > start || !value.is_char_boundary(value.len() - trim) {
             return Err(ParseError::InternalError);
         }
+
         value.truncate(value.len() - trim);
         *previous_end -= trim;
         node_start -= trim;
     }
+
     state.push(node_start, end, TokenKind::Atom(kind, vec![]))
 }
 
@@ -101,10 +117,11 @@ fn apply_delimiter(
     end: usize,
     pairing: Pairing,
 ) -> Result<(), ParseError> {
-    validate_delimiter(&state.source, start, end, pairing)?;
+    validate_delimiter(state.source, start, end, pairing)?;
 
     for offset in (0..end - start).step_by(pairing.width) {
         let token = state.tokens.len();
+
         state.push(
             start + offset,
             start + offset + pairing.width,
@@ -112,6 +129,7 @@ fn apply_delimiter(
                 state.source.text[start + offset..start + offset + pairing.width].into(),
             ),
         )?;
+
         state.delimiters.push(Delimiter {
             key: (key, pairing.marker),
             length: if pairing.rule_of_three {
@@ -126,6 +144,7 @@ fn apply_delimiter(
             pairing,
         });
     }
+
     Ok(())
 }
 
@@ -138,6 +157,7 @@ fn validate_delimiter(
     if pairing.width == 0 {
         return Err(ParseError::InternalError);
     }
+
     if !(end - start).is_multiple_of(pairing.width)
         || !source.text.as_bytes()[start..end]
             .iter()
@@ -145,6 +165,7 @@ fn validate_delimiter(
     {
         return Err(ParseError::InternalError);
     }
+
     Ok(())
 }
 
@@ -165,6 +186,7 @@ fn open_bracket(
         },
         inhibit_on_inner,
     });
+
     state.push(
         start,
         end,

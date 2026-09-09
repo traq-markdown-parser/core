@@ -6,8 +6,10 @@ fn selected_declarations_share_groups_but_not_sibling_names() {
     let first = generic.new("math");
     let other = generic.new("math");
     let marks = generic.new("marks");
+
     assert!(validate_names([&first, &marks]).is_ok());
     assert!(validate_names([&other]).is_ok());
+
     assert_eq!(
         validate_names([&first, &other]),
         Err(NameCollision {
@@ -15,10 +17,12 @@ fn selected_declarations_share_groups_but_not_sibling_names() {
             name: "math".into()
         }),
     );
+
     assert_eq!(
         validate_names([&first, &first]),
         validate_names([&first, &other])
     );
+
     assert!(validate_names([]).is_ok());
 }
 
@@ -29,8 +33,10 @@ fn scope_uses_parent_identity_not_a_joined_display_path() {
     let two = root.group("two");
     let left = one.new("math");
     let right = two.new("math");
+
     assert!(validate_names([&left, &right]).is_ok());
     assert!(validate_names([&left, &Plugin::new("generic/one/math")]).is_ok());
+
     assert_eq!(
         validate_names([&left, &one.new("math")]),
         Err(NameCollision {
@@ -38,6 +44,7 @@ fn scope_uses_parent_identity_not_a_joined_display_path() {
             name: "math".into()
         }),
     );
+
     // Distinct group instances with equal names collide when both are selected.
     let unrelated = Plugin::group("generic").new("other");
     assert_eq!(
@@ -47,6 +54,7 @@ fn scope_uses_parent_identity_not_a_joined_display_path() {
             name: "generic".into()
         }),
     );
+
     // Groups and plugins occupy the same display namespace.
     assert_eq!(
         validate_names([&left, &root.new("one")]),

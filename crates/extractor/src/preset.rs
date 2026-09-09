@@ -42,6 +42,7 @@ impl<R> PresetBuilder<R> {
             .iter()
             .position(|p| p.same(plugin))
             .ok_or("missing_plugin")?;
+
         self.plugins.remove(index);
         Ok(self)
     }
@@ -60,6 +61,7 @@ impl<R> PresetBuilder<R> {
                     .map(|(id, handler)| (*id, handler.clone()))
             })
             .collect();
+
         Ok(Preset {
             handlers: Arc::new(handlers),
         })

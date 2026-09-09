@@ -5,6 +5,7 @@ use serde::{Serialize, Serializer};
 pub(super) fn encode(document: &Document, codec: &Codec) -> serde_json::Result<Vec<u8>> {
     // Check before recursive serialization, including subtrees a renderer may hide.
     let limits = crate::DecodeLimits::default();
+
     document
         .validate(ValidationLimits {
             source_bytes: limits.source_bytes,
@@ -53,6 +54,7 @@ impl Serialize for DocumentOutput<'_> {
             source: &'a str,
             children: Children<'a>,
         }
+
         Frame {
             source: &self.document.source,
             children: Children {
@@ -81,6 +83,7 @@ impl Serialize for NodeOutput<'_> {
             start: usize,
             end: usize,
         }
+
         #[derive(Serialize)]
         struct Frame<'a> {
             kind: &'a str,
@@ -89,6 +92,7 @@ impl Serialize for NodeOutput<'_> {
             #[serde(skip_serializing_if = "Children::is_empty")]
             children: Children<'a>,
         }
+
         Frame {
             kind: &entry.name,
             span: Span {

@@ -8,6 +8,7 @@ use syn::{DeriveInput, GenericParam, ext::IdentExt, parse_macro_input, parse_quo
 #[proc_macro_derive(NodeType)]
 pub fn node_type(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
+
     expand(input)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
@@ -25,6 +26,7 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
 
     let name = &input.ident;
     let label = name.unraw().to_string();
+
     let arguments: Vec<_> = input
         .generics
         .params
@@ -41,10 +43,12 @@ fn expand(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
         quote! {
             let arguments = [#(#arguments),*];
             let mut key = ::std::string::String::from(::core::concat!(::core::module_path!(), "::", #label, "<"));
+
             for (index, argument) in arguments.iter().enumerate() {
                 if index != 0 { key.push(','); }
                 key.push_str(&::std::format!("{}:{}", argument.len(), argument));
             }
+
             key.push('>');
             key
         }
@@ -72,11 +76,13 @@ fn generic_argument(
             let ty = &parameter.ident;
             Some(quote!(<#ty as #path::NodeType>::type_key()))
         }
+
         GenericParam::Const(parameter) => {
             let value = &parameter.ident;
             Some(quote!(::std::string::ToString::to_string(&#value)
                 .chars().flat_map(::core::primitive::char::escape_default).collect::<::std::string::String>()))
         }
+
         GenericParam::Lifetime(_) => None,
     }
 }

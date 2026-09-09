@@ -31,12 +31,15 @@ fn shared_types_work_across_independent_registration_orders() {
 
     assert!(producer.encode(&doc).is_err());
     producer.register::<Score>().unwrap();
+
     let bytes = producer.encode(&doc).unwrap();
     assert_eq!(producer.decode(&bytes).unwrap(), doc);
+
     let mut consumer = Codec::default();
     consumer.register::<RenamedScore>().unwrap();
     assert!(consumer.decode(&bytes).is_err()); // A renamed type is a new wire key.
     consumer.register::<Score>().unwrap();
+
     let restored = consumer.decode(&bytes).unwrap();
     assert_eq!(restored, doc);
     assert_eq!(consumer.encode(&restored).unwrap(), bytes);
@@ -53,6 +56,7 @@ fn first(codec: &mut Codec) -> Document {
     impl NodeData for Collision {}
 
     codec.register::<Collision>().unwrap();
+
     Document {
         source: "".into(),
         children: vec![Node::leaf(
@@ -61,6 +65,7 @@ fn first(codec: &mut Codec) -> Document {
         )],
     }
 }
+
 fn second(codec: &mut Codec) -> Result<(), &'static str> {
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, NodeType)]
     struct Collision {
@@ -71,11 +76,13 @@ fn second(codec: &mut Codec) -> Result<(), &'static str> {
 
     codec.register::<Collision>()
 }
+
 #[test]
 fn distinct_local_types_with_the_same_generated_key_are_rejected_atomically() {
     let mut codec = Codec::default();
     let doc = first(&mut codec);
     let before = codec.encode(&doc).unwrap();
+
     assert!(second(&mut codec).is_err());
     assert_eq!(codec.encode(&doc).unwrap(), before);
     assert_eq!(codec.decode(&before).unwrap(), doc);

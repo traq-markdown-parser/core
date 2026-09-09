@@ -1,8 +1,10 @@
 use super::{apply, delimiters, text, token::*, tree};
+
 use crate::{
     Node, NodeKind,
     engine::{Budget, Grammar, ParseError, block::References, source::SourceView},
 };
+
 use std::ops::Range;
 
 pub struct InlineInput<'a> {
@@ -13,6 +15,7 @@ pub struct InlineInput<'a> {
     pub trailing_text: &'a str,
     pub(crate) references: &'a References,
 }
+
 impl InlineInput<'_> {
     pub fn tail(&self) -> &str {
         &self.source.text[self.position..]
@@ -22,22 +25,26 @@ impl InlineInput<'_> {
         self.references.get(key)
     }
 }
+
 pub struct TextInput<'a> {
     pub source: &'a SourceView,
     pub range: Range<usize>,
     pub after_decoded_text: bool,
 }
+
 impl TextInput<'_> {
     pub fn text(&self) -> &str {
         &self.source.text[self.range.clone()]
     }
 }
+
 pub struct TextMatch {
     pub start: usize,
     pub end: usize,
     pub kind: NodeKind,
     pub children: Vec<Node>,
 }
+
 pub(super) struct State<'a, 'b> {
     pub source: &'a SourceView,
     pub make_text: &'a crate::engine::plugin::TextFactory,
@@ -47,6 +54,7 @@ pub(super) struct State<'a, 'b> {
     pub delimiters: Vec<Delimiter>,
     pub brackets: Vec<Bracket>,
 }
+
 impl State<'_, '_> {
     pub fn push(&mut self, start: usize, end: usize, kind: TokenKind) -> Result<(), ParseError> {
         self.budget.token()?;
@@ -56,6 +64,7 @@ impl State<'_, '_> {
 
     pub fn literal(&mut self, end: usize) -> Result<(), ParseError> {
         let value = &self.source.text[self.position..end];
+
         if let Some(Token {
             end: previous_end,
             kind: TokenKind::Text(previous),
@@ -67,6 +76,7 @@ impl State<'_, '_> {
         } else {
             self.push(self.position, end, TokenKind::Text(value.into()))?;
         }
+
         Ok(())
     }
 }
@@ -96,6 +106,7 @@ pub(crate) fn parse(
     }
 
     delimiters::balance(&mut state.tokens, &mut state.delimiters, state.budget)?;
+
     let tokens = text::process(state.tokens, source, grammar, state.budget)?;
     tree::build(tokens, source, state.make_text, state.budget)
 }
@@ -106,8 +117,10 @@ fn find_match(
     references: &References,
 ) -> Result<(usize, InlineMatch), ParseError> {
     let candidates = &grammar.data.dispatch[state.source.text.as_bytes()[state.position] as usize];
+
     for &key in candidates {
         let rule = &grammar.data.inline[key];
+
         let input = InlineInput {
             source: state.source,
             position: state.position,
@@ -122,6 +135,7 @@ fn find_match(
                 _ => "",
             },
         };
+
         if let Some(result) = (rule.data.implementation.parse)(&input, state.budget)? {
             return Ok((key, result));
         }
@@ -133,6 +147,7 @@ fn find_match(
             .next()
             .expect("position is within source")
             .len_utf8();
+
     Ok((0, InlineMatch::literal(end)))
 }
 
@@ -147,5 +162,6 @@ fn validate_match(
     {
         return Err(ParseError::InternalError);
     }
+
     Ok(())
 }

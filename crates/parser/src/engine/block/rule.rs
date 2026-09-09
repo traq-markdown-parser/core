@@ -4,12 +4,15 @@ use std::sync::Arc;
 
 type ParseRule =
     dyn Fn(&BlockInput<'_>, &mut Budget) -> Result<Option<BlockMatch>, ParseError> + Send + Sync;
+
 type ProbeRule = dyn Fn(&BlockProbe<'_>) -> bool + Send + Sync;
+
 #[derive(Clone)]
 pub struct BlockDefinition {
     pub(crate) parse: Arc<ParseRule>,
     pub(crate) interrupt: Option<Arc<ProbeRule>>,
 }
+
 pub type BlockRule = Rule<BlockDefinition>;
 
 impl BlockRule {

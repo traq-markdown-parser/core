@@ -20,19 +20,24 @@ trait Payload: Debug + Send + Sync {
     fn equals(&self, other: &dyn Payload) -> bool;
     fn validate(&self, children: &[Node]) -> bool;
 }
+
 impl<T: NodeData> Payload for T {
     fn any(&self) -> &dyn Any {
         self
     }
+
     fn any_mut(&mut self) -> &mut dyn Any {
         self
     }
+
     fn copy(&self) -> Box<dyn Payload> {
         Box::new(self.clone())
     }
+
     fn equals(&self, other: &dyn Payload) -> bool {
         other.any().downcast_ref::<T>() == Some(self)
     }
+
     fn validate(&self, children: &[Node]) -> bool {
         NodeData::validate(self, children)
     }

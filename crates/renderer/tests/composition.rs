@@ -9,6 +9,7 @@ use std::sync::{
 #[derive(Debug, Clone, PartialEq)]
 struct Text;
 impl NodeData for Text {}
+
 #[derive(Debug, Clone, PartialEq)]
 struct Other;
 impl NodeData for Other {}
@@ -25,18 +26,23 @@ fn parser_and_renderer_use_one_declaration_and_borrow_the_same_ast() {
     let declaration = Declaration::new("shared text");
     let mut syntax = markdown_parser::Plugin::new(&declaration);
     syntax.text(|_| Text);
+
     let mut grammar = markdown_parser::GrammarBuilder::new();
     grammar.add(&syntax).unwrap();
+
     let parser = markdown_parser::Parser::new(&grammar.build().unwrap());
 
     let mut rendering = Plugin::new(&declaration);
     rendering
         .on::<Text>(|_, _, _| Ok("rendered".into()))
         .unwrap();
+
     let mut builder = PresetBuilder::new();
     builder.add(&rendering).unwrap();
+
     let renderer = Renderer::new(&builder.build().unwrap());
     let document = parser.parse_inline("hello").unwrap();
+
     assert_eq!(renderer.render(&document).unwrap(), "rendered");
     assert_eq!(document.children[0].get::<Text>(), Some(&Text));
     assert_eq!(document.source, "hello");
@@ -50,22 +56,29 @@ fn captured_configuration_is_shared_and_outlives_the_preset() {
     plugin
         .on::<Text>(move |_, _, _| Ok(calls.fetch_add(1, Ordering::Relaxed).to_string()))
         .unwrap();
+
     let mut builder = PresetBuilder::new();
     builder.add(&plugin).unwrap();
+
     let preset = builder.build().unwrap();
     let first = Renderer::new(&preset);
     let second = Renderer::new(&preset);
+
     drop(preset);
     drop(plugin);
+
     assert_eq!(first.render(&document(Text)).unwrap(), "0");
+
     // Move an independent renderer to another thread, using the same capture.
     std::thread::spawn(move || {
         assert_eq!(second.render(&document(Text)).unwrap(), "1");
     })
     .join()
     .unwrap();
+
     assert!(weak.upgrade().is_some());
     drop(first);
+
     assert!(weak.upgrade().is_none());
 }
 
@@ -73,35 +86,44 @@ fn captured_configuration_is_shared_and_outlives_the_preset() {
 fn snapshots_are_isolated_and_failed_registration_is_atomic() {
     let mut plugin = Plugin::new(&Declaration::new("first"));
     plugin.on::<Text>(|_, _, _| Ok("first".into())).unwrap();
+
     let registered = plugin.clone();
     let mut builder = PresetBuilder::new();
     builder.add(&plugin).unwrap();
+
     let renderer = Renderer::new(&builder.clone().build().unwrap());
     assert!(builder.add(&plugin).is_err());
     assert!(plugin.on::<Text>(|_, _, _| Ok("duplicate".into())).is_err());
+
     // A rejected handler does not produce a new snapshot.
     let mut copy = builder.clone();
     copy.remove(&plugin).unwrap();
 
     plugin.on::<Other>(|_, _, _| Ok("new".into())).unwrap();
+
     assert!(builder.remove(&plugin).is_err());
     assert_eq!(renderer.render(&document(Other)), Err("unsupported_node"));
+
     builder.remove(&registered).unwrap();
     builder.add(&plugin).unwrap();
+
     assert_eq!(
         Renderer::new(&builder.build().unwrap())
             .render(&document(Other))
             .unwrap(),
         "new"
     );
+
     assert_eq!(renderer.render(&document(Text)).unwrap(), "first");
 
     let mut conflict = Plugin::new(&Declaration::new("conflict"));
     conflict.on::<Other>(|_, _, _| Ok("leaked".into())).unwrap();
     conflict.on::<Text>(|_, _, _| Ok("wrong".into())).unwrap();
+
     let mut builder = PresetBuilder::new();
     builder.add(&registered).unwrap();
     assert!(builder.add(&conflict).is_err());
+
     let renderer = Renderer::new(&builder.build().unwrap());
     assert_eq!(renderer.render(&document(Other)), Err("unsupported_node"));
     assert_eq!(renderer.render(&document(Text)).unwrap(), "first");

@@ -2,12 +2,14 @@ use super::{
     block::BlockRule,
     inline::{InlineRule, TextRule},
 };
+
 #[derive(Clone)]
 pub enum Contribution {
     Inline(InlineRule),
     Block(BlockRule),
     Text(TextRule),
 }
+
 impl From<InlineRule> for Contribution {
     fn from(rule: InlineRule) -> Self {
         Self::Inline(rule)

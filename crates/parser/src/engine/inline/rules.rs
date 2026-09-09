@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 type ParseRule =
     dyn Fn(&InlineInput<'_>, &mut Budget) -> Result<Option<InlineMatch>, ParseError> + Send + Sync;
+
 #[derive(Clone)]
 pub struct InlineDefinition {
     pub(crate) markers: &'static [u8],
@@ -28,10 +29,12 @@ impl InlineRule {
 
 type TextParser =
     dyn Fn(&TextInput<'_>, &mut Budget) -> Result<Vec<TextMatch>, ParseError> + Send + Sync;
+
 #[derive(Clone)]
 pub struct TextDefinition {
     pub(crate) parse: Arc<TextParser>,
 }
+
 pub type TextRule = Rule<TextDefinition>;
 
 impl TextRule {

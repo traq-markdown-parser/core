@@ -16,11 +16,13 @@ impl ParseError {
         }
     }
 }
+
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
     }
 }
+
 impl std::error::Error for ParseError {}
 
 #[derive(Debug, Clone, Copy)]
@@ -30,6 +32,7 @@ pub struct Limits {
     pub depth: usize,
     pub work: usize,
 }
+
 impl Default for Limits {
     fn default() -> Self {
         Self {
@@ -47,6 +50,7 @@ pub struct Budget {
     tokens: usize,
     work: usize,
 }
+
 impl Budget {
     pub(crate) fn new(limits: Limits) -> Self {
         Self {
@@ -55,6 +59,7 @@ impl Budget {
             work: 0,
         }
     }
+
     pub fn spend(&mut self, work: usize) -> Result<(), ParseError> {
         self.work = self
             .work
@@ -64,11 +69,14 @@ impl Budget {
         if self.work > self.limits.work {
             return Err(ParseError::limit("work"));
         }
+
         Ok(())
     }
+
     pub(crate) fn remaining_work(&self) -> usize {
         self.limits.work.saturating_sub(self.work)
     }
+
     pub fn token(&mut self) -> Result<(), ParseError> {
         self.tokens = self
             .tokens
@@ -78,12 +86,15 @@ impl Budget {
         if self.tokens > self.limits.nodes {
             return Err(ParseError::limit("tokens"));
         }
+
         Ok(())
     }
+
     pub fn depth(&self, depth: usize) -> Result<(), ParseError> {
         if depth > self.limits.depth {
             return Err(ParseError::limit("depth"));
         }
+
         Ok(())
     }
 }

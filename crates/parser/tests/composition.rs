@@ -20,15 +20,20 @@ fn mutation_and_rejected_changes_preserve_existing_snapshots() {
             input.position + 1,
         )))
     });
+
     plugin.add(&rule);
+
     let mut builder = GrammarBuilder::new();
     builder.add(&plugin).unwrap();
+
     let original = builder.clone().build().unwrap();
     let mut duplicate = Plugin::new(&Declaration::new("duplicate"));
     duplicate.add(&rule);
     assert!(builder.add(&duplicate).is_err());
+
     let missing = InlineRule::new(b"x", |_, _| Ok(None));
     assert!(builder.before(&rule, &missing).is_err());
+
     assert_eq!(
         builder.clone().build().unwrap().describe(),
         original.describe()
@@ -40,9 +45,13 @@ fn mutation_and_rejected_changes_preserve_existing_snapshots() {
             "changed".into(),
         )))
     }));
+
     assert!(builder.remove(&plugin).is_err());
+
     let parser = Parser::new(&builder.build().unwrap());
+
     drop(original);
+
     assert_eq!(
         parser.parse_inline("y").unwrap().children[0].get::<Text>(),
         Some(&Text("y".into()))
@@ -57,8 +66,10 @@ fn rule_names_are_checked_per_plugin_and_phase() {
             let rule = InlineRule::new(marker, |_, _| Ok(None));
             plugin.add(if named { rule.named("rule") } else { rule });
         }
+
         let mut builder = GrammarBuilder::new();
         builder.add(&plugin).unwrap();
+
         assert_eq!(
             matches!(builder.build(), Err(BuildError::DuplicateName { .. })),
             expected_error
@@ -72,13 +83,16 @@ fn shared_name_checks_keep_parser_diagnostics_and_rule_error_priority() {
     let nested = root.group("nested");
     let first = Plugin::new(&nested.new("same"));
     let mut second = Plugin::new(&nested.new("same"));
+
     for rule_collision in [false, true] {
         if rule_collision {
             for marker in [b"a" as &'static [u8], b"b"] {
                 second.add(InlineRule::new(marker, |_, _| Ok(None)).named("rule"));
             }
         }
+
         let mut builder = GrammarBuilder::new();
+
         builder
             .add(&plugin())
             .unwrap()
@@ -86,6 +100,7 @@ fn shared_name_checks_keep_parser_diagnostics_and_rule_error_priority() {
             .unwrap()
             .add(&second)
             .unwrap();
+
         let expected = if rule_collision {
             BuildError::DuplicateName {
                 scope: "generic/nested/same / inline".into(),
@@ -97,6 +112,7 @@ fn shared_name_checks_keep_parser_diagnostics_and_rule_error_priority() {
                 name: "same".into(),
             }
         };
+
         assert!(matches!(builder.build(), Err(error) if error == expected));
     }
 }

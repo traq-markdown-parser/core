@@ -10,6 +10,7 @@ use markdown_parser::{
 #[derive(Debug, Clone, PartialEq)]
 struct Text(String);
 impl NodeData for Text {}
+
 #[derive(Debug, Clone, PartialEq)]
 struct Invalid;
 impl NodeData for Invalid {
@@ -17,11 +18,13 @@ impl NodeData for Invalid {
         false
     }
 }
+
 fn plugin() -> Plugin {
     let mut plugin = Plugin::new(&Declaration::new("test"));
     plugin.text(Text);
     plugin
 }
+
 fn parser(plugin: &Plugin) -> Parser {
     let mut builder = GrammarBuilder::new();
     builder.add(plugin).unwrap();
@@ -49,9 +52,11 @@ fn invalid_plugin_results_never_return_partial_documents() {
     ] {
         let action = std::sync::Mutex::new(Some(action));
         let mut plugin = plugin();
+
         plugin.add(InlineRule::new(b"", move |_, _| {
             Ok(action.lock().unwrap().take())
         }));
+
         assert_eq!(
             parser(&plugin).parse_inline("日"),
             Err(ParseError::InternalError)
@@ -62,14 +67,17 @@ fn invalid_plugin_results_never_return_partial_documents() {
 #[test]
 fn unsuccessful_rules_still_consume_the_work_budget() {
     let mut plugin = plugin();
+
     plugin.add(InlineRule::new(b"", |_, budget| {
         budget.spend(10)?;
         Ok(None)
     }));
+
     let parser = parser(&plugin).with_limits(Limits {
         work: 5,
         ..Limits::default()
     });
+
     assert!(matches!(parser.parse_inline("x"),
         Err(ParseError::ResourceLimit { resource }) if resource == "work"));
 }
@@ -87,6 +95,7 @@ fn source_helpers_reject_invalid_ranges() {
                 .map(Some),
             _ => input.blocks(1, Text(String::new()).into(), 0..99).map(Some),
         }));
+
         assert_eq!(
             parser(&plugin).parse("text"),
             Err(ParseError::InternalError)
@@ -97,16 +106,20 @@ fn source_helpers_reject_invalid_ranges() {
 #[test]
 fn final_validation_stops_at_the_remaining_work_budget() {
     use std::sync::atomic::{AtomicUsize, Ordering};
+
     static CHECKS: AtomicUsize = AtomicUsize::new(0);
     #[derive(Clone, Debug, PartialEq)]
     struct Counted;
+
     impl NodeData for Counted {
         fn validate(&self, _: &[Node]) -> bool {
             CHECKS.fetch_add(1, Ordering::Relaxed);
             true
         }
     }
+
     let mut plugin = plugin();
+
     plugin.add(InlineRule::new(b"x", |_, _| {
         Ok(Some(InlineMatch {
             end: 1,
@@ -119,15 +132,18 @@ fn final_validation_stops_at_the_remaining_work_budget() {
             },
         }))
     }));
+
     let result = parser(&plugin)
         .with_limits(Limits {
             work: 20,
             ..Limits::default()
         })
         .parse_inline("x");
+
     assert!(matches!(result, Err(ParseError::ResourceLimit { resource }) if resource == "work"));
     assert!(CHECKS.load(Ordering::Relaxed) <= 20);
     CHECKS.store(0, Ordering::Relaxed);
+
     assert!(
         parser(&plugin)
             .with_limits(Limits {
@@ -137,5 +153,6 @@ fn final_validation_stops_at_the_remaining_work_budget() {
             .parse_inline("x")
             .is_ok()
     );
+
     assert_eq!(CHECKS.load(Ordering::Relaxed), 30);
 }

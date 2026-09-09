@@ -8,6 +8,7 @@ impl BlockInput<'_> {
         if self.start >= end || end > self.lines.len() {
             return Err(ParseError::InternalError);
         }
+
         self.source
             .span_for(self.lines[self.start].start..self.lines[end - 1].end)
     }
@@ -17,11 +18,13 @@ impl BlockInput<'_> {
         if lines.start > lines.end || lines.end > self.lines.len() {
             return Err(ParseError::InternalError);
         }
+
         if lines.is_empty() {
             let position = self
                 .lines
                 .get(lines.start)
                 .map_or(self.source.text().len(), |r| r.start);
+
             self.source.join(&[position..position])
         } else {
             self.source.join(&self.lines[lines])
@@ -43,6 +46,7 @@ impl BlockInput<'_> {
     pub fn leaf(&self, end: usize, kind: NodeKind) -> Result<BlockMatch, ParseError> {
         self.matched(end, kind, DraftContent::Leaf)
     }
+
     pub fn blocks(
         &self,
         end: usize,

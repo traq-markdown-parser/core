@@ -55,6 +55,7 @@ impl DraftNode {
     pub fn is_loose(&self) -> bool {
         self.loose
     }
+
     pub(crate) fn resolve_blocks(&mut self, batch: BlockBatch) {
         self.loose = batch.loose;
         self.content = DraftContent::Nodes(batch.nodes);

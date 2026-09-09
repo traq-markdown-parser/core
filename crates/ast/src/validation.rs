@@ -73,6 +73,7 @@ impl Document {
             if depth > limits.depth {
                 return Err(ValidationError::Depth);
             }
+
             let span = node.span;
             if span.start > span.end
                 || span.start < parent.start
@@ -82,6 +83,7 @@ impl Document {
             {
                 return Err(ValidationError::InvalidSpan);
             }
+
             if !node.validate() {
                 return Err(ValidationError::InvalidNode);
             }
@@ -89,7 +91,9 @@ impl Document {
             if node.children.len() > limits.nodes - count {
                 return Err(ValidationError::Nodes);
             }
+
             count += node.children.len();
+
             if !node.children.is_empty() {
                 if depth >= limits.depth {
                     return Err(ValidationError::Depth);

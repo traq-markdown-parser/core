@@ -13,11 +13,13 @@ pub struct BlockBatch {
     pub nodes: Vec<DraftNode>,
     pub loose: bool,
 }
+
 pub struct Definition {
     pub key: String,
     pub destination: String,
     pub title: Option<String>,
 }
+
 pub(crate) type References = std::collections::HashMap<String, (String, Option<String>)>;
 
 pub struct BlockMatch {
@@ -26,6 +28,7 @@ pub struct BlockMatch {
     pub definitions: Vec<Definition>,
     pub consume_separator: bool,
 }
+
 impl BlockMatch {
     pub fn node(end: usize, node: DraftNode) -> Self {
         Self {
@@ -35,6 +38,7 @@ impl BlockMatch {
             consume_separator: true,
         }
     }
+
     pub fn ignore(end: usize) -> Self {
         Self {
             end,
@@ -52,6 +56,7 @@ pub enum Interrupt {
     Reference,
     BlockBody,
 }
+
 pub struct BlockProbe<'a> {
     pub line: &'a str,
     pub next: Option<&'a str>,
@@ -88,6 +93,7 @@ impl BlockInput<'_> {
             next,
             context,
         };
+
         self.grammar.data.block.iter().any(|entry| {
             entry
                 .data

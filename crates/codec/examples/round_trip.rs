@@ -26,6 +26,7 @@ impl NodeData for Text {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut codec = Codec::default();
+
     codec.register::<Heading>()?;
     codec.register::<Text>()?;
 
@@ -45,7 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let json = codec.encode(&document)?;
     let decoded = codec.decode(&json)?;
+
     assert_eq!(document, decoded);
     println!("{}", String::from_utf8(json)?);
+
     Ok(())
 }

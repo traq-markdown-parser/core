@@ -12,6 +12,7 @@ impl std::fmt::Display for NameCollision {
         write!(f, "duplicate name {:?} in {}", self.name, self.scope)
     }
 }
+
 impl std::error::Error for NameCollision {}
 
 /// Check selected plugins and their ancestors for equal names under one parent.
@@ -43,11 +44,13 @@ pub fn validate_names<'a>(
             });
         }
     }
+
     Ok(())
 }
 
 fn collect_groups<'a>(plugins: &[&'a Plugin]) -> Vec<&'a PluginGroup> {
     let mut groups = vec![];
+
     for plugin in plugins {
         let mut parent = plugin.namespace();
         while let Some(group) = parent {
@@ -58,16 +61,20 @@ fn collect_groups<'a>(plugins: &[&'a Plugin]) -> Vec<&'a PluginGroup> {
             parent = group.parent();
         }
     }
+
     groups
 }
 
 fn format_scope(mut parent: Option<&PluginGroup>) -> String {
     let mut scope = vec![];
+
     while let Some(group) = parent {
         scope.push(group.name());
         parent = group.parent();
     }
+
     scope.reverse();
+
     if scope.is_empty() {
         "<root>".into()
     } else {

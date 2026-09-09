@@ -71,6 +71,7 @@ fn extractor(plugin: &Plugin<Collected>) -> Extractor<Collected> {
 fn fresh_results_keep_preorder_duplicates_and_unregistered_descendants() {
     let calls = Arc::new(AtomicUsize::new(0));
     let extractor = extractor(&plugin(calls.clone()));
+
     let doc = document(vec![node(
         Container,
         vec![
@@ -82,6 +83,7 @@ fn fresh_results_keep_preorder_duplicates_and_unregistered_descendants() {
     let first = extractor.extract(&doc).unwrap();
     assert_eq!(first.ids, [1, 2, 1]);
     assert_eq!(first.count.get(), 3);
+
     // The extractor can cross threads even when its result cannot.
     std::thread::spawn(move || {
         let second = extractor.extract(&doc).unwrap();
@@ -90,6 +92,7 @@ fn fresh_results_keep_preorder_duplicates_and_unregistered_descendants() {
     })
     .join()
     .unwrap();
+
     assert_eq!(calls.load(Ordering::Relaxed), 6);
 }
 
@@ -97,6 +100,7 @@ fn fresh_results_keep_preorder_duplicates_and_unregistered_descendants() {
 fn validation_precedes_all_handlers_and_failed_runs_do_not_leak_results() {
     let calls = Arc::new(AtomicUsize::new(0));
     let extractor = extractor(&plugin(calls.clone()));
+
     let doc = document(vec![
         node(Reference(1), vec![]),
         node(Container, vec![node(Invalid, vec![])]),
@@ -104,11 +108,14 @@ fn validation_precedes_all_handlers_and_failed_runs_do_not_leak_results() {
 
     assert!(matches!(extractor.extract(&doc), Err("invalid_node")));
     assert_eq!(calls.load(Ordering::Relaxed), 0);
+
     let mut doc = document(vec![node(Reference(1), vec![])]);
     doc.source = "é".into();
     doc.children[0].span = Span { start: 1, end: 2 };
+
     assert!(matches!(extractor.extract(&doc), Err("invalid_node")));
     assert_eq!(calls.load(Ordering::Relaxed), 0);
+
     let doc = document(vec![
         node(Reference(1), vec![]),
         node(Reference(99), vec![]),
@@ -123,11 +130,13 @@ fn snapshots_duplicate_rejection_and_removal_are_atomic() {
     let mut plugin = plugin(Arc::new(AtomicUsize::new(0)));
     let original = plugin.clone();
     let mut builder = PresetBuilder::new();
+
     builder.add(&plugin).unwrap();
     let old = Extractor::new(&builder.clone().build().unwrap());
 
     assert!(builder.add(&plugin).is_err());
     assert!(plugin.on::<Reference>(|_, _| Ok(())).is_err());
+
     builder.clone().remove(&plugin).unwrap();
     plugin
         .on::<Container>(|_, result| {
@@ -135,9 +144,12 @@ fn snapshots_duplicate_rejection_and_removal_are_atomic() {
             Ok(())
         })
         .unwrap();
+
     assert!(builder.remove(&plugin).is_err());
     assert!(builder.add(&plugin).is_err());
+
     let doc = document(vec![node(Container, vec![])]);
+
     assert!(old.extract(&doc).unwrap().ids.is_empty());
     assert!(
         Extractor::new(&builder.clone().build().unwrap())
@@ -146,7 +158,9 @@ fn snapshots_duplicate_rejection_and_removal_are_atomic() {
             .ids
             .is_empty()
     );
+
     builder.remove(&original).unwrap().add(&plugin).unwrap();
+
     assert_eq!(
         Extractor::new(&builder.build().unwrap())
             .extract(&doc)
@@ -162,19 +176,27 @@ fn limits_also_apply_to_unregistered_nodes() {
     let mut doc = document(vec![node(Container, vec![]); 16_384]);
 
     assert!(extractor.extract(&doc).is_ok());
+
     doc.children.push(node(Container, vec![]));
+
     assert!(matches!(extractor.extract(&doc), Err("resource_limit")));
+
     let mut root = node(Container, vec![]);
+
     for _ in 1..64 {
         root = node(Container, vec![root]);
     }
+
     doc.children = vec![root];
     assert!(extractor.extract(&doc).is_ok());
+
     doc.children = vec![node(Container, doc.children)];
     assert!(matches!(extractor.extract(&doc), Err("resource_limit")));
+
     doc.children.clear();
     doc.source = "x".repeat(65_536);
     assert!(extractor.extract(&doc).is_ok());
+
     doc.source.push('x');
     assert!(matches!(extractor.extract(&doc), Err("resource_limit")));
 }
@@ -187,12 +209,16 @@ fn selected_names_are_checked_using_namespace_identity() {
     builder.add(&Plugin::new(&group.new("same"))).unwrap();
     builder.add(&Plugin::new(&group.new("same"))).unwrap();
     assert!(matches!(builder.build(), Err("duplicate_name")));
+
     let mut builder = PresetBuilder::<Collected>::new();
+
     builder
         .add(&Plugin::new(&group.group("one").new("same")))
         .unwrap();
+
     builder
         .add(&Plugin::new(&group.group("two").new("same")))
         .unwrap();
+
     assert!(builder.build().is_ok());
 }

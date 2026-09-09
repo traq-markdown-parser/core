@@ -1,15 +1,19 @@
 use super::{BlockBatch, BlockInput, DraftContent, DraftNode, References};
+
 use crate::{
     Node, ParseError,
     engine::{Budget, Grammar, inline, source::SourceView},
 };
+
 use std::ops::Range;
 
 fn blank(text: &str) -> bool {
     text.bytes().all(|b| b == b' ' || b == b'\t')
 }
+
 fn lines(text: &str) -> Vec<Range<usize>> {
     let mut position = 0;
+
     text.split_inclusive('\n')
         .map(|line| {
             let range = position..position + line.len();
@@ -26,6 +30,7 @@ pub(crate) fn parse(
     budget: &mut Budget,
 ) -> Result<Vec<Node>, ParseError> {
     let expanded;
+
     let source = if source.text.contains('\t') {
         budget.spend(source.text.len())?;
         expanded = source.expand_tabs();
@@ -49,6 +54,7 @@ fn tokenize(
 ) -> Result<BlockBatch, ParseError> {
     budget.depth(depth)?;
     budget.spend(source.work_len())?;
+
     let lines = lines(&source.text);
     let last_nonblank = lines
         .iter()
@@ -56,6 +62,7 @@ fn tokenize(
         .unwrap_or(0);
 
     let (mut position, mut loose, mut nodes) = (0, false, vec![]);
+
     while position < lines.len() {
         budget.token()?;
         let input = BlockInput {
@@ -64,6 +71,7 @@ fn tokenize(
             start: position,
             grammar,
         };
+
         let found = match_block(&input, budget)?;
         validate_match(&found, position, lines.len())?;
 
@@ -77,6 +85,7 @@ fn tokenize(
             resolve_blocks(&mut node, grammar, budget, references, depth)?;
             nodes.push(node);
         }
+
         position = found.end;
 
         consume_separator(
@@ -87,6 +96,7 @@ fn tokenize(
             &mut loose,
         );
     }
+
     Ok(BlockBatch { nodes, loose })
 }
 
@@ -99,6 +109,7 @@ fn match_block(
             return Ok(found);
         }
     }
+
     Err(ParseError::InternalError)
 }
 
@@ -110,6 +121,7 @@ fn validate_match(
     if found.end <= start || found.end > line_count {
         return Err(ParseError::InternalError);
     }
+
     Ok(())
 }
 
@@ -140,17 +152,20 @@ fn resolve_blocks(
             let batch = tokenize(source, grammar, budget, references, depth + 1)?;
             node.resolve_blocks(batch);
         }
+
         DraftContent::Nodes(children) => {
             for child in children {
                 resolve_blocks(child, grammar, budget, references, depth + 1)?;
             }
         }
+
         _ => {}
     }
 
     if let Some(finish) = node.finish {
         finish(node);
     }
+
     Ok(())
 }
 
@@ -164,19 +179,24 @@ fn resolve_inlines(
     budget.depth(depth)?;
 
     let mut nodes = Vec::with_capacity(drafts.len());
+
     for draft in drafts {
         let children = match draft.content {
             DraftContent::Leaf => vec![],
+
             DraftContent::Inline(source) => {
                 inline::parse(&source.restore_tabs(), grammar, budget, references)?
             }
+
             DraftContent::Nodes(children) => {
                 resolve_inlines(children, grammar, budget, references, depth + 1)?
             }
+
             DraftContent::Blocks(_) => return Err(ParseError::InternalError),
         };
 
         nodes.push(Node::new(draft.span, draft.kind, children));
     }
+
     Ok(nodes)
 }

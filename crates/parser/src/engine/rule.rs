@@ -6,6 +6,7 @@ pub struct Rule<T: Clone> {
     pub(crate) data: Arc<RuleData<T>>,
     label: Option<String>,
 }
+
 #[derive(Clone)]
 pub(crate) struct RuleData<T: Clone> {
     pub implementation: T,
@@ -18,6 +19,7 @@ impl<T: Clone> Rule<T> {
             label: None,
         }
     }
+
     pub fn named(mut self, name: impl Into<String>) -> Self {
         self.label = Some(name.into());
         self
@@ -30,6 +32,7 @@ impl<T: Clone> Rule<T> {
     pub(crate) fn same(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.data, &other.data)
     }
+
     pub(crate) fn description(&self) -> String {
         self.name().unwrap_or("<anonymous rule>").into()
     }

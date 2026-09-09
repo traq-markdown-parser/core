@@ -47,5 +47,6 @@ fn validate_document(document: &Document) -> Result<()> {
                 "resource_limit"
             }
         })?;
+
     Ok(())
 }

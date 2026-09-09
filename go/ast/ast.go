@@ -10,13 +10,16 @@ type Span struct {
 	Start uint32 `json:"start"`
 	End   uint32 `json:"end"`
 }
+
 type Payload interface{ NodePayload() }
+
 type Node struct {
 	Kind     string  `json:"kind"`
 	Span     Span    `json:"span"`
 	Data     Payload `json:"data"`
 	Children []Node  `json:"children,omitempty"`
 }
+
 type Document struct {
 	Source   string `json:"source"`
 	Children []Node `json:"children"`
@@ -36,18 +39,22 @@ func DecodeDocument(raw []byte, factory func(string) Payload) (*Document, error)
 		Source   string            `json:"source"`
 		Children []json.RawMessage `json:"children"`
 	}
+
 	if err := json.Unmarshal(raw, &wire); err != nil {
 		return nil, err
 	}
+
 	children, err := decodeNodes(wire.Children, factory)
 	if err != nil {
 		return nil, err
 	}
+
 	return &Document{Source: wire.Source, Children: children}, nil
 }
 
 func decodeNodes(items []json.RawMessage, factory func(string) Payload) ([]Node, error) {
 	nodes := make([]Node, len(items))
+
 	for i, raw := range items {
 		var value wireNode
 		if err := json.Unmarshal(raw, &value); err != nil {
@@ -66,7 +73,9 @@ func decodeNodes(items []json.RawMessage, factory func(string) Payload) ([]Node,
 		if err != nil {
 			return nil, err
 		}
+
 		nodes[i] = Node{Kind: value.Kind, Span: value.Span, Data: payload, Children: children}
 	}
+
 	return nodes, nil
 }

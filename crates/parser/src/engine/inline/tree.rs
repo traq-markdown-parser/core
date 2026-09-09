@@ -1,4 +1,5 @@
 use super::token::{Token, TokenKind};
+
 use crate::{
     Node, ParseError,
     engine::{Budget, plugin::TextFactory, source::SourceView},
@@ -19,6 +20,7 @@ pub(super) fn build(
         budget.spend(1)?;
         let kind = match token.kind {
             TokenKind::Empty => continue,
+
             TokenKind::Text(value) | TokenKind::Decoded(value) | TokenKind::Marker(value) => {
                 if !value.is_empty() {
                     if let Some((_, end, previous)) = &mut text {
@@ -30,17 +32,22 @@ pub(super) fn build(
                 }
                 continue;
             }
+
             kind => kind,
         };
+
         flush(&mut text, &mut children, source, make_text);
+
         match kind {
             TokenKind::Atom(kind, nested) => {
                 children.push(Node::new(source.span(token.start, token.end), kind, nested));
             }
+
             TokenKind::Open(make, combined) => {
                 budget.depth(stack.len() + 1)?;
                 stack.push((make, combined, token.start, std::mem::take(&mut children)));
             }
+
             TokenKind::Close => {
                 let (make, combined, start, previous) =
                     stack.pop().ok_or(ParseError::InternalError)?;
@@ -51,14 +58,17 @@ pub(super) fn build(
                     nested,
                 ));
             }
+
             _ => unreachable!("text and empty tokens handled above"),
         }
     }
 
     flush(&mut text, &mut children, source, make_text);
+
     if !stack.is_empty() {
         return Err(ParseError::InternalError);
     }
+
     Ok(children)
 }
 

@@ -7,9 +7,10 @@ use super::{
 /// Immutable compiled grammar. Its composition can be edited through a new builder.
 #[derive(Clone)]
 pub struct Grammar {
-    pub(crate) data: std::sync::Arc<CompiledGrammar>,
+    pub(crate) data: std::sync::Arc<Compilation>,
 }
-pub(crate) struct CompiledGrammar {
+
+pub(crate) struct Compilation {
     pub(crate) definition: GrammarBuilder,
     pub(crate) inline: Vec<InlineRule>,
     pub(crate) block: Vec<BlockRule>,
@@ -46,4 +47,5 @@ impl std::fmt::Display for BuildError {
         write!(f, "{self:?}")
     }
 }
+
 impl std::error::Error for BuildError {}

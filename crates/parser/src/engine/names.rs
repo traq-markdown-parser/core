@@ -7,6 +7,7 @@ fn duplicate(scope: String, name: &str) -> BuildError {
         name: name.into(),
     }
 }
+
 /// Only namespaces reached through the selected plugins participate.
 pub(super) fn validate(plugins: &[Plugin]) -> Result<(), BuildError> {
     for plugin in plugins {
