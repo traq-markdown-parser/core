@@ -43,6 +43,16 @@ impl Catalog {
             return Err(invalid("composition limit exceeded"));
         }
 
+        let groups = self.compose_groups(spec)?;
+        let mut builder = self.compose_plugins(spec, &groups)?;
+        self.apply_rule_order(spec, &mut builder)?;
+        builder.build()
+    }
+
+    fn compose_groups(
+        &self,
+        spec: &Composition,
+    ) -> Result<Vec<crate::engine::PluginGroup>, BuildError> {
         let mut groups: Vec<crate::engine::PluginGroup> = vec![];
         let mut depths = vec![];
         for (index, group) in spec.groups.iter().enumerate() {
@@ -65,43 +75,69 @@ impl Catalog {
             depths.push(depth);
         }
 
+        Ok(groups)
+    }
+
+    fn compose_plugins(
+        &self,
+        spec: &Composition,
+        groups: &[crate::engine::PluginGroup],
+    ) -> Result<GrammarBuilder, BuildError> {
         let mut builder = GrammarBuilder::new();
         for plugin in &spec.plugins {
-            let name = plugin
-                .name
-                .as_deref()
-                .ok_or_else(|| invalid("missing plugin display name"))?;
-            let declaration = match plugin.group {
-                Some(index) => groups
-                    .get(index)
-                    .ok_or_else(|| invalid("unknown namespace"))?
-                    .new(name),
-                None => Declaration::new(name),
-            };
-            let mut value = Plugin::new(&declaration);
-            if plugin.rules.len() > 4096 || plugin.text.len() > 256 {
-                return Err(invalid("rule limit exceeded"));
-            }
-            for &index in &plugin.rules {
-                value.add(
-                    self.rules
-                        .get(index)
-                        .ok_or_else(|| invalid("unknown rule"))?
-                        .clone(),
-                );
-            }
-            for &index in &plugin.text {
-                let source = self
-                    .plugins
-                    .get(index)
-                    .ok_or_else(|| invalid("unknown text provider"))?;
-                std::sync::Arc::make_mut(&mut value.definition)
-                    .text
-                    .extend(source.definition.text.iter().cloned());
-            }
-            builder.add(&value)?;
+            builder.add(&self.compose_plugin(plugin, groups)?)?;
         }
 
+        Ok(builder)
+    }
+
+    fn compose_plugin(
+        &self,
+        spec: &PluginSpec,
+        groups: &[crate::engine::PluginGroup],
+    ) -> Result<Plugin, BuildError> {
+        let name = spec
+            .name
+            .as_deref()
+            .ok_or_else(|| invalid("missing plugin display name"))?;
+        let declaration = match spec.group {
+            Some(index) => groups
+                .get(index)
+                .ok_or_else(|| invalid("unknown namespace"))?
+                .new(name),
+            None => Declaration::new(name),
+        };
+        let mut plugin = Plugin::new(&declaration);
+
+        if spec.rules.len() > 4096 || spec.text.len() > 256 {
+            return Err(invalid("rule limit exceeded"));
+        }
+        for &index in &spec.rules {
+            plugin.add(
+                self.rules
+                    .get(index)
+                    .ok_or_else(|| invalid("unknown rule"))?
+                    .clone(),
+            );
+        }
+        for &index in &spec.text {
+            let source = self
+                .plugins
+                .get(index)
+                .ok_or_else(|| invalid("unknown text provider"))?;
+            std::sync::Arc::make_mut(&mut plugin.definition)
+                .text
+                .extend(source.definition.text.iter().cloned());
+        }
+
+        Ok(plugin)
+    }
+
+    fn apply_rule_order(
+        &self,
+        spec: &Composition,
+        builder: &mut GrammarBuilder,
+    ) -> Result<(), BuildError> {
         if spec.order.len() != builder.rules.len() {
             return Err(invalid("incomplete rule order"));
         }
@@ -125,6 +161,6 @@ impl Catalog {
         }
 
         builder.rules = ordered;
-        builder.build()
+        Ok(())
     }
 }
